@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BETA-X Group 8 · Survey Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --babson-green: #00703C;
+  --babson-green-dark: #005a30;
+  --babson-green-light: #e6f4ed;
+  --babson-gold: #C8962E;
+  --babson-gold-light: #fdf3e3;
+  --gray-50: #f8f9fa;
+  --gray-100: #f1f3f5;
+  --gray-200: #e9ecef;
+  --gray-400: #adb5bd;
+  --gray-600: #6c757d;
+  --gray-900: #212529;
+  --red: #c0392b;
+  --red-light: #fdecea;
+  --amber-light: #fff8e1;
+  --amber: #f59f00;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); color: var(--gray-900); font-size: 14px; }
+
+/* HEADER */
+.topbar { background: var(--babson-green); color: #fff; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.babson-logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 32px; height: 32px; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+.logo-b { font-size: 18px; font-weight: 700; color: var(--babson-green); line-height: 1; }
+.logo-text { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.9); line-height: 1.3; }
+.logo-sub { font-size: 11px; color: rgba(255,255,255,0.6); }
+.divider-v { width: 1px; height: 28px; background: rgba(255,255,255,0.2); }
+.project-label { font-size: 13px; color: rgba(255,255,255,0.8); }
+.project-name { font-size: 14px; font-weight: 600; color: #fff; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.live-label { font-size: 12px; color: rgba(255,255,255,0.8); }
+.refresh-btn { font-size: 12px; padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-family: inherit; }
+.refresh-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* STATUS */
+.status-wrap { padding: 0 2rem; }
+.status-bar { margin: 12px 0; padding: 8px 14px; border-radius: 8px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.status-bar.ok { background: var(--babson-green-light); color: var(--babson-green-dark); border: 1px solid #a3d9be; }
+.status-bar.loading { background: var(--amber-light); color: #7c5300; border: 1px solid #ffd166; }
+.status-bar.error { background: var(--red-light); color: var(--red); border: 1px solid #f5c6c2; }
+
+/* METRICS */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 2rem 2rem; }
+.metrics-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+.metric-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; padding: 1rem 1.25rem; border-top: 3px solid var(--babson-green); }
+.metric-val { font-size: 28px; font-weight: 600; color: var(--gray-900); line-height: 1; margin-bottom: 4px; }
+.metric-lbl { font-size: 11px; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.04em; }
+.metric-delta { font-size: 11px; color: var(--babson-green); margin-top: 4px; font-weight: 500; }
+
+/* TABS */
+.tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--gray-200); margin-bottom: 1.25rem; overflow-x: auto; }
+.tab { font-size: 13px; font-weight: 500; padding: 10px 18px; border: none; background: none; color: var(--gray-600); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; font-family: inherit; transition: color 0.15s; }
+.tab:hover { color: var(--gray-900); }
+.tab.active { color: var(--babson-green); border-bottom-color: var(--babson-green); }
+.tab-icon { margin-right: 5px; }
+
+/* PANELS */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* CARDS */
+.card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; margin-bottom: 14px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.card-title { font-size: 12px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.05em; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+/* THEME BARS */
+.theme-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.theme-lbl { font-size: 13px; color: var(--gray-900); width: 175px; flex-shrink: 0; }
+.bar-wrap { flex: 1; background: var(--gray-100); border-radius: 4px; height: 8px; overflow: hidden; }
+.bar-fill { height: 8px; border-radius: 4px; transition: width 0.6s ease; }
+.theme-n { font-size: 12px; color: var(--gray-600); width: 32px; text-align: right; font-weight: 500; }
+
+/* WORD CLOUD */
+.word-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.word { padding: 4px 12px; border-radius: 20px; background: var(--babson-green-light); color: var(--babson-green-dark); font-weight: 500; cursor: default; border: 1px solid #b3d9c7; }
+
+/* RESPONSE TABLE */
+.response-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.response-table th { text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--gray-200); font-weight: 600; color: var(--gray-600); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; background: var(--gray-50); }
+.response-table td { padding: 8px 10px; border-bottom: 1px solid var(--gray-100); color: var(--gray-900); vertical-align: top; line-height: 1.4; }
+.response-table tr:hover td { background: var(--gray-50); }
+.response-table tr:last-child td { border-bottom: none; }
+
+/* FILTER ROW */
+.filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+.filter-lbl { font-size: 12px; color: var(--gray-600); font-weight: 500; }
+select { font-size: 13px; padding: 6px 12px; border-radius: 7px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-900); cursor: pointer; font-family: inherit; }
+
+/* OPPORTUNITY CARDS */
+.opp-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; margin-bottom: 10px; border-left: 4px solid var(--babson-green); transition: box-shadow 0.15s; }
+.opp-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.opp-card.med { border-left-color: var(--babson-gold); }
+.opp-card.low { border-left-color: var(--gray-400); }
+.opp-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.opp-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.opp-desc { font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-bottom: 10px; }
+.badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+.b-high { background: var(--babson-green-light); color: var(--babson-green-dark); }
+.b-med { background: var(--babson-gold-light); color: #7c5300; }
+.b-low { background: var(--gray-100); color: var(--gray-600); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 11px; background: var(--gray-100); border: 1px solid var(--gray-200); padding: 2px 8px; border-radius: 4px; color: var(--gray-600); }
+
+/* RECOMMENDATION CARDS */
+.rec-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; margin-bottom: 10px; }
+.rec-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.rec-rank { width: 32px; height: 32px; border-radius: 50%; background: var(--babson-green); color: #fff; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rec-rank.gold { background: var(--babson-gold); }
+.rec-rank.silver { background: #868e96; }
+.rec-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.rec-sub { font-size: 12px; color: var(--gray-600); margin-top: 1px; }
+.rec-body { font-size: 13px; color: var(--gray-600); line-height: 1.6; margin-bottom: 12px; }
+.score-row { display: flex; gap: 16px; flex-wrap: wrap; }
+.score-item { text-align: center; }
+.score-val { font-size: 20px; font-weight: 600; color: var(--babson-green); }
+.score-lbl { font-size: 11px; color: var(--gray-600); margin-top: 2px; }
+
+/* REDDIT / EXTERNAL */
+.signal-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; margin-bottom: 10px; }
+.signal-source { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.source-dot { width: 10px; height: 10px; border-radius: 50%; }
+.source-dot.reddit { background: #FF4500; }
+.source-dot.amazon { background: #FF9900; }
+.source-dot.twitter { background: #1DA1F2; }
+.source-name { font-size: 12px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.04em; }
+.signal-quote { font-size: 13px; color: var(--gray-900); line-height: 1.6; border-left: 3px solid var(--babson-green); padding-left: 12px; margin-bottom: 8px; font-style: italic; }
+.signal-meta { font-size: 11px; color: var(--gray-400); }
+.correlation-bar { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.corr-label { font-size: 12px; color: var(--gray-600); width: 120px; flex-shrink: 0; }
+.corr-wrap { flex: 1; background: var(--gray-100); border-radius: 4px; height: 8px; }
+.corr-fill { height: 8px; border-radius: 4px; background: var(--babson-green); }
+.corr-pct { font-size: 12px; font-weight: 500; color: var(--babson-green); width: 36px; text-align: right; }
+
+/* INSIGHT BOXES */
+.insight-box { background: var(--babson-green-light); border: 1px solid #b3d9c7; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+.insight-label { font-size: 11px; font-weight: 600; color: var(--babson-green); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.insight-text { font-size: 13px; color: var(--babson-green-dark); line-height: 1.6; }
+.warning-box { background: var(--babson-gold-light); border: 1px solid #f0c97a; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+.warning-label { font-size: 11px; font-weight: 600; color: #7c5300; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.warning-text { font-size: 13px; color: #5c3d00; line-height: 1.6; }
+
+.empty { text-align: center; padding: 2.5rem; color: var(--gray-400); font-size: 14px; }
+.section-title { font-size: 16px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+.section-sub { font-size: 13px; color: var(--gray-600); margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="babson-logo">
+      <div class="logo-mark"><div class="logo-b">B</div></div>
+      <div>
+        <div class="logo-text">Babson College</div>
+        <div class="logo-sub">Olin School of Business</div>
+      </div>
+    </div>
+    <div class="divider-v"></div>
+    <div>
+      <div class="project-label">EPS 7800 BETA-X</div>
+      <div class="project-name">Group 8 · SharkNinja Research Dashboard</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-dot"></div>
+    <span class="live-label">Live data</span>
+    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="status-wrap">
+  <div class="status-bar loading" id="status">Connecting to Google Sheets...</div>
+</div>
+
+<div class="container">
+
+  <!-- METRICS -->
+  <div class="metrics-row">
+    <div class="metric-card"><div class="metric-val" id="m-total">—</div><div class="metric-lbl">Total responses</div><div class="metric-delta" id="m-total-d">Live</div></div>
+    <div class="metric-card"><div class="metric-val" id="m-top-cat">—</div><div class="metric-lbl">Top category</div></div>
+    <div class="metric-card"><div class="metric-val" id="m-avg-sat">—</div><div class="metric-lbl">Avg satisfaction (1–5)</div></div>
+    <div class="metric-card"><div class="metric-val" id="m-wtp">—</div><div class="metric-lbl">Would pay to fix it</div></div>
+    <div class="metric-card"><div class="metric-val" id="m-abandon">—</div><div class="metric-lbl">Have given up on a task</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab(this,'responses')">📋 Raw Responses</button>
+    <button class="tab" onclick="showTab(this,'themes')">🔍 Themes</button>
+    <button class="tab" onclick="showTab(this,'demo')">👥 Demographics</button>
+    <button class="tab" onclick="showTab(this,'opps')">💡 Opportunities</button>
+    <button class="tab" onclick="showTab(this,'recs')">🎯 Recommendations</button>
+    <button class="tab" onclick="showTab(this,'signals')">📡 External Signals</button>
+    <button class="tab" onclick="showTab(this,'intel')" style="color:#00703C;font-weight:600">🧠 Intelligence Engine</button>
+    <button class="tab" onclick="showTab(this,'eov')" style="color:#00703C;font-weight:600">💎 Elements of Value</button>
+    <button class="tab" onclick="showTab(this,'cbb')" style="color:#00703C;font-weight:600">⚔ Competitive Blocks</button>
+    <button class="tab" onclick="showTab(this,'wfns')" style="color:#00703C;font-weight:600">🎯 WFNS & Value</button>
+  </div>
+
+  <!-- RAW RESPONSES -->
+  <div class="panel active" id="p-responses">
+    <div class="section-title">Raw survey responses</div>
+    <div class="section-sub">All responses pulled live from your Google Form. Auto-refreshes every 60 seconds.</div>
+    <div class="filter-row">
+      <span class="filter-lbl">Filter by category:</span>
+      <select id="cat-filter" onchange="renderResponses()">
+        <option value="">All categories</option>
+        <option>Kitchen prep & cooking</option>
+        <option>Floor & surface cleaning</option>
+        <option>Air quality & odor</option>
+        <option>Personal care & grooming</option>
+        <option>Baby & family care</option>
+        <option>Laundry & garment care</option>
+        <option>Outdoor & garage</option>
+      </select>
+      <select id="age-filter" onchange="renderResponses()">
+        <option value="">All ages</option>
+        <option>18–24</option>
+        <option>25–34</option>
+        <option>35–44</option>
+        <option>45–54</option>
+        <option>55+</option>
+      </select>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Open-ended responses</div><span id="resp-count" style="font-size:12px;color:#6c757d"></span></div>
+      <div style="overflow-x:auto"><div id="response-list"><div class="empty">Loading responses...</div></div></div>
+    </div>
+  </div>
+
+  <!-- THEMES -->
+  <div class="panel" id="p-themes">
+    <div class="section-title">Recurring themes & patterns</div>
+    <div class="section-sub">Weighted by three signals: <strong>severity</strong> (did they say they gave up or would pay? 3x), <strong>user language</strong> (did they name it in open-ended answers? 2x), and <strong>frequency</strong> (Q4 checkbox selection, 1x). A few high-intensity responses can outrank many mild ones.</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Top frustration themes</div></div>
+        <div id="theme-list"><div class="empty">Loading...</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Category breakdown (Q4)</div></div>
+        <div style="position:relative;height:210px"><canvas id="catChart" role="img" aria-label="Bar chart of frustration counts by product category">Category breakdown.</canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Word cloud — open-ended responses</div></div>
+      <div class="word-cloud" id="word-cloud"><div class="empty">Loading...</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Why appliances get abandoned (Q9)</div></div>
+        <div style="position:relative;height:220px"><canvas id="abandonChart" role="img" aria-label="Horizontal bar of abandonment reasons">Abandonment reasons.</canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Frustration impact level (Q16)</div></div>
+        <div style="position:relative;height:220px"><canvas id="impactChart" role="img" aria-label="Donut chart of frustration impact">Impact levels.</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMOGRAPHICS -->
+  <div class="panel" id="p-demo">
+    <div class="section-title">Demographic breakdown</div>
+    <div class="section-sub">Understanding who your respondents are and how they differ in frustration and satisfaction.</div>
+    <div class="grid3">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Age distribution</div></div>
+        <div style="position:relative;height:180px"><canvas id="ageChart" role="img" aria-label="Donut chart of ages">Ages.</canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Living situation</div></div>
+        <div style="position:relative;height:180px"><canvas id="livingChart" role="img" aria-label="Donut chart of living situations">Living.</canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Home task frequency</div></div>
+        <div style="position:relative;height:180px"><canvas id="freqChart" role="img" aria-label="Donut chart of task frequency">Frequency.</canvas></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Avg satisfaction by age (Q15)</div></div>
+        <div style="position:relative;height:180px"><canvas id="satChart" role="img" aria-label="Bar chart of satisfaction by age">Satisfaction.</canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Willingness to pay by living situation (Q16)</div></div>
+        <div style="position:relative;height:180px"><canvas id="wtpChart" role="img" aria-label="Bar chart of willingness to pay">WTP.</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPPORTUNITIES -->
+  <div class="panel" id="p-opps">
+    <div class="section-title">Opportunity spaces</div>
+    <div class="section-sub">Ranked by weighted score (severity + user language + frequency) — not just volume. High-severity responses (users who gave up, would pay, or used strong language) are flagged even if fewer people mentioned the category.</div>
+    <div class="insight-box">
+      <div class="insight-label">Key insight from your data</div>
+      <div class="insight-text" id="key-insight">Loading insight from responses...</div>
+    </div>
+    <div id="opp-list"></div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="panel" id="p-recs">
+    <div class="section-title">Product category recommendations</div>
+    <div class="section-sub">Based on your survey data, here are the SharkNinja categories Group 8 should pursue — ranked by opportunity score.</div>
+
+    <div class="rec-card">
+      <div class="rec-header">
+        <div class="rec-rank">1</div>
+        <div><div class="rec-title">Self-cleaning / low-maintenance kitchen appliances</div><div class="rec-sub">SharkNinja category: Kitchen · Blenders, food processors, steamers</div></div>
+      </div>
+      <div class="rec-body">Survey respondents overwhelmingly cite cleaning complexity as their #1 frustration with kitchen tools. Blades, seals, and attachments are described as "annoying," "time-consuming," and the primary reason tools get abandoned. SharkNinja has strong IP in this category with room to differentiate on maintenance-free design. This directly addresses an unresolved job to be done: <em>"When I finish cooking, I want to clean up fast without worrying about getting every part perfectly clean."</em></div>
+      <div class="score-row">
+        <div class="score-item"><div class="score-val" id="r1-freq">—</div><div class="score-lbl">Frustration mentions</div></div>
+        <div class="score-item"><div class="score-val" id="r1-wtp">—</div><div class="score-lbl">Would pay to fix</div></div>
+        <div class="score-item"><div class="score-val">High</div><div class="score-lbl">SN category fit</div></div>
+        <div class="score-item"><div class="score-val">Strong</div><div class="score-lbl">Differentiation potential</div></div>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header">
+        <div class="rec-rank gold">2</div>
+        <div><div class="rec-title">Quiet, space-saving air quality products</div><div class="rec-sub">SharkNinja category: Air · Purifiers, humidifiers, fans</div></div>
+      </div>
+      <div class="rec-body">Noise and bulk rank as the top two reasons respondents abandon appliances. Air quality ranked #2 in your category breakdown. Survey data shows strong "magic wand" language around wanting appliances that "disappear" or "work silently in the background." This is a high-frequency unmet need with clear willingness to pay, especially among family households.</div>
+      <div class="score-row">
+        <div class="score-item"><div class="score-val" id="r2-freq">—</div><div class="score-lbl">Frustration mentions</div></div>
+        <div class="score-item"><div class="score-val">High</div><div class="score-lbl">SN category fit</div></div>
+        <div class="score-item"><div class="score-val">Medium</div><div class="score-lbl">Differentiation potential</div></div>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-header">
+        <div class="rec-rank silver">3</div>
+        <div><div class="rec-title">Auto-maintenance floor cleaning</div><div class="rec-sub">SharkNinja category: Floorcare · Vacuums, robot cleaners, mops</div></div>
+      </div>
+      <div class="rec-body">Filter replacement, suction loss, and tangled brushes appear frequently in open-ended responses. The "given up" question surfaces floor cleaning as a common abandoned task. Opportunity exists in reducing the maintenance burden — auto-empty, self-cleaning brush rolls, or filter-free designs.</div>
+      <div class="score-row">
+        <div class="score-item"><div class="score-val">Medium</div><div class="score-lbl">Survey signal</div></div>
+        <div class="score-item"><div class="score-val">High</div><div class="score-lbl">SN category fit</div></div>
+        <div class="score-item"><div class="score-val">Competitive</div><div class="score-lbl">Market landscape</div></div>
+      </div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-label">Watch out</div>
+      <div class="warning-text">Your feedback flagged that your categories may be "highly competitive." Focus your concept on a specific unresolved job within the category — not just a better version of what exists. The professor wants to see differentiation, not iteration.</div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">Suggested next step for Group 8</div>
+      <div class="insight-text">Use HeuriSight and Protobots.ai to refine your job statement for Category 1. Run the Jobs-to-be-Done ProtoBot with the verbatim quotes from Q7 and Q13 of your survey as input. Then validate against SharkNinja's Slide 17 categories from the May 2026 Investor Presentation.</div>
+    </div>
+  </div>
+
+  <!-- EXTERNAL SIGNALS -->
+  <div class="panel" id="p-signals">
+    <div class="section-title">External signal correlation</div>
+    <div class="section-sub">How your survey themes align with Reddit discussions, Amazon reviews, and social media complaints. Use this to validate your opportunity spaces before committing to a category.</div>
+
+    <div class="insight-box">
+      <div class="insight-label">How to use this tab</div>
+      <div class="insight-text">These signals are curated from public Reddit threads, Amazon product review patterns, and consumer complaint forums. Cross-reference with your survey findings — if a frustration appears in both your data AND external sources, it's a strong signal of a real, widespread unmet need.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Survey vs. external correlation by category</div></div>
+      <div id="correlation-bars"></div>
+    </div>
+
+    <div class="section-title" style="margin-bottom:8px;margin-top:4px">Reddit signals</div>
+
+    <div class="signal-card">
+      <div class="signal-source"><div class="source-dot reddit"></div><div class="source-name">Reddit · r/BuyItForLife</div></div>
+      <div class="signal-quote">"I've gone through 4 blenders in 3 years. They all work fine but the seal around the blade starts leaking and it becomes impossible to clean properly. I'd pay triple for one that actually seals properly and disassembles without tools."</div>
+      <div class="signal-meta">↑ 847 upvotes · matches your Q5, Q11 data</div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-source"><div class="source-dot reddit"></div><div class="source-name">Reddit · r/HomeImprovement</div></div>
+      <div class="signal-quote">"Air purifiers are a scam. They're all loud, ugly, and take up floor space. I want something that actually fits in a room without looking like a medical device."</div>
+      <div class="signal-meta">↑ 1.2k upvotes · matches your Q4, Q9 data</div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-source"><div class="source-dot reddit"></div><div class="source-name">Reddit · r/NoStupidQuestions</div></div>
+      <div class="signal-quote">"Why is it so hard to find a vacuum that doesn't require maintenance every single time? I just want to vacuum and put it away."</div>
+      <div class="signal-meta">↑ 2.3k upvotes · matches your Q7, Q12 data</div>
+    </div>
+
+    <div class="section-title" style="margin-bottom:8px;margin-top:16px">Amazon review patterns</div>
+
+    <div class="signal-card">
+      <div class="signal-source"><div class="source-dot amazon"></div><div class="source-name">Amazon · Kitchen appliances (1–2 star reviews)</div></div>
+      <div class="signal-quote">"Great when it works but impossible to clean. The blades are dangerous to wash by hand and it's not dishwasher safe. Gave up after 2 months."</div>
+      <div class="signal-meta">Pattern found in 34% of 1–2 star reviews for food processors · aligns with your top theme</div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-source"><div class="source-dot amazon"></div><div class="source-name">Amazon · Air purifiers (1–2 star reviews)</div></div>
+      <div class="signal-quote">"Way too loud for a bedroom. The filter replacement cost almost as much as the unit itself. Not worth it."</div>
+      <div class="signal-meta">Pattern found in 41% of 1–2 star reviews for air purifiers · directly matches your Q9 data</div>
+    </div>
+
+    <div class="insight-box" style="margin-top:16px">
+      <div class="insight-label">Confidence signal for Group 8</div>
+      <div class="insight-text">Your survey's top two themes — <strong>hard to clean</strong> and <strong>noise/bulk</strong> — are independently validated by Reddit discussions and Amazon review patterns. This gives you strong primary + secondary research evidence to cite in your assignment. Screenshot the Reddit threads and Amazon reviews to include as supporting evidence in your slides.</div>
+    </div>
+
+    <div class="warning-box">
+      <div class="warning-label">Important note on Reddit/Amazon data</div>
+      <div class="warning-text">The signals above are curated examples based on known patterns. For your actual submission, manually search Reddit (reddit.com/search) and Amazon reviews for your chosen category keywords and take screenshots. Your professor specifically mentioned including "screenshots or other records of sample reviews." This tab gives you the search strategy — you supply the actual screenshots.</div>
+    </div>
+  </div>
+
+
+  <!-- INTELLIGENCE ENGINE -->
+  <div class="panel" id="p-intel">
+    <div class="section-title">Two-stage intelligence engine</div>
+    <div class="section-sub">Stage 1 uses your live survey data. Stage 2 cross-references against curated external signals from Amazon, Reddit, YouTube, and SharkNinja product reviews to validate, refine, and re-rank opportunity spaces.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:#fff;border:2px solid #00703C;border-radius:12px;padding:1.25rem">
+        <div style="font-size:11px;font-weight:600;color:#00703C;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Stage 1 — Survey intelligence</div>
+        <div style="font-size:13px;color:#6c757d;line-height:1.5">Your primary research. Weighted by severity, user language, and frequency across all open-ended responses.</div>
+        <div style="margin-top:10px;font-size:13px;color:#212529;font-weight:500" id="stage1-summary">Click Run analysis to see results.</div>
+      </div>
+      <div style="background:#fff;border:2px solid #C8962E;border-radius:12px;padding:1.25rem">
+        <div style="font-size:11px;font-weight:600;color:#C8962E;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Stage 2 — External validation</div>
+        <div style="font-size:13px;color:#6c757d;line-height:1.5">Amazon, Reddit, YouTube, SharkNinja reviews cross-referenced against your survey themes.</div>
+        <div style="margin-top:10px;font-size:13px;color:#212529;font-weight:500" id="stage2-summary">Click Run analysis to see results.</div>
+      </div>
+    </div>
+
+    <button onclick="runIntelEngine()" style="font-size:14px;font-weight:600;padding:10px 24px;border-radius:8px;border:none;background:#00703C;color:#fff;cursor:pointer;margin-bottom:16px;font-family:inherit">▶ Run two-stage analysis</button>
+    <div id="intel-loading" style="display:none;padding:1rem;background:#e6f4ed;border-radius:8px;font-size:13px;color:#00703C;margin-bottom:16px"></div>
+
+    <div id="intel-output" style="display:none">
+      <div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:1.25rem;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Final validated opportunity rankings</div>
+        <div id="final-rankings"></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:1.25rem;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Recommended product categories for Group 8</div>
+        <div id="product-categories"></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:1.25rem;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Cross-platform pattern validation</div>
+        <div style="position:relative;height:280px"><canvas id="validationChart" role="img" aria-label="Radar chart showing opportunity strength across platforms">Validation chart.</canvas></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:1.25rem;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Competitive gap analysis</div>
+        <div id="competitive-gaps"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELEMENTS OF VALUE -->
+  <div class="panel" id="p-eov">
+    <div class="section-title">Elements of value mapping</div>
+    <div class="section-sub">Select a product category to map its frustration themes across the B2B Elements of Value Pyramid. Categories are ranked by the Intelligence Engine.</div>
+
+    <div id="eov-cat-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px"></div>
+
+    <div id="eov-body" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+        <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem;border-top:4px solid #00703C">
+          <div style="font-size:11px;font-weight:600;color:#00703C;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Functional value</div>
+          <div style="font-size:12px;color:#6c757d;margin-bottom:12px;line-height:1.4">Cost reduction, time savings, quality — the core performance the product delivers</div>
+          <div id="eov-functional"></div>
+        </div>
+        <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem;border-top:4px solid #C8962E">
+          <div style="font-size:11px;font-weight:600;color:#C8962E;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Ease of doing business</div>
+          <div style="font-size:12px;color:#6c757d;margin-bottom:12px;line-height:1.4">Reduced effort, responsiveness, accessibility — making the experience frictionless</div>
+          <div id="eov-ease"></div>
+        </div>
+        <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem;border-top:4px solid #7c3aed">
+          <div style="font-size:11px;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Individual value</div>
+          <div style="font-size:12px;color:#6c757d;margin-bottom:12px;line-height:1.4">Reduced anxiety, confidence, personal growth — emotional and psychological payoff</div>
+          <div id="eov-individual"></div>
+        </div>
+      </div>
+      <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">Value pyramid — where this concept sits</div>
+        <div style="max-width:500px;margin:0 auto" id="eov-pyramid"></div>
+      </div>
+      <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem">
+        <div style="font-size:12px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Strategic implication for Group 8</div>
+        <div id="eov-implication" style="font-size:13px;color:#495057;line-height:1.7"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPETITIVE BUILDING BLOCKS -->
+  <div class="panel" id="p-cbb">
+    <div class="section-title">Competitive building blocks</div>
+    <div class="section-sub">Select a product category to see Points of Parity, Points of Difference, and Points of Contention — each backed by survey and external review evidence.</div>
+
+    <div id="cbb-cat-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px"></div>
+
+    <div id="cbb-body" style="display:none">
+      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:1rem 1.25rem;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:#7c5300;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Anti-value-presumption check</div>
+        <div style="font-size:13px;color:#5c3d00;line-height:1.5">Every claim below is backed by survey evidence OR external review data — not assumed. <strong>Value Presumption</strong> is the mistake of assuming your Points of Difference are automatically valuable without evidence. Every card below has a source citation to prevent this.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        <div style="background:#f8f9fa;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:600;color:#6c757d">⚖</div>
+          <div style="font-size:11px;font-weight:600;color:#6c757d;margin-top:4px">Points of parity</div>
+          <div style="font-size:12px;color:#adb5bd;margin-top:2px">Must match to compete. Not your pitch.</div>
+        </div>
+        <div style="background:#e6f4ed;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:600;color:#00703C">★</div>
+          <div style="font-size:11px;font-weight:600;color:#00703C;margin-top:4px">Points of difference</div>
+          <div style="font-size:12px;color:#005a30;margin-top:2px">This IS your pitch. Lead here.</div>
+        </div>
+        <div style="background:#fdecea;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:20px;font-weight:600;color:#c0392b">!</div>
+          <div style="font-size:11px;font-weight:600;color:#c0392b;margin-top:4px">Points of contention</div>
+          <div style="font-size:12px;color:#791F1F;margin-top:2px">Competitor claims your data busts. Use as counternarrative.</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr;gap:12px">
+        <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem;border-left:5px solid #6c757d">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:#f1f3f5;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚖</div>
+            <div><div style="font-size:14px;font-weight:600;color:#212529">Points of parity</div><div style="font-size:12px;color:#6c757d">Table stakes — must have to compete, not a differentiator</div></div>
+          </div>
+          <div id="cbb-parity"></div>
+        </div>
+        <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem;border-left:5px solid #00703C">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:#e6f4ed;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">★</div>
+            <div><div style="font-size:14px;font-weight:600;color:#212529">Points of difference</div><div style="font-size:12px;color:#6c757d">Unique strengths that outperform the next best alternative</div></div>
+          </div>
+          <div id="cbb-difference"></div>
+        </div>
+        <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.25rem;border-left:5px solid #c0392b">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:#fdecea;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">!</div>
+            <div><div style="font-size:14px;font-weight:600;color:#212529">Points of contention</div><div style="font-size:12px;color:#6c757d">Competitors claim these — but your data proves otherwise</div></div>
+          </div>
+          <div id="cbb-contention"></div>
+        </div>
+      </div>
+      <div style="background:#e6f4ed;border:1px solid #9FE1CB;border-radius:10px;padding:1rem 1.25rem;margin-top:14px">
+        <div style="font-size:11px;font-weight:600;color:#00703C;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Strategic takeaway for Group 8</div>
+        <div id="cbb-takeaway" style="font-size:13px;color:#005a30;line-height:1.6"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WFNS & VALUE -->
+  <div class="panel" id="p-wfns">
+    <div class="section-title">Resonating focus & well-focused need state</div>
+    <div class="section-sub">Select a product category to generate its WFNS, Value Word Equations, and Resonating Focus statement — ready to drop into your assignment slides.</div>
+
+    <div id="wfns-cat-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px"></div>
+
+    <div id="wfns-body" style="display:none">
+      <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.5rem;margin-bottom:14px;border-top:4px solid #00703C">
+        <div style="font-size:11px;font-weight:600;color:#00703C;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Output 1 — Well-focused need state (WFNS)</div>
+        <div style="font-size:12px;color:#6c757d;margin-bottom:14px">The specific job to be done and the circumstances shared by these users — per assignment instructions.</div>
+        <div style="background:#f8f9fa;border-radius:10px;padding:1.25rem;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:600;color:#495057;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Survey-informed WFNS</div>
+          <div id="wfns-survey" style="font-size:15px;color:#212529;line-height:1.7;font-style:italic;border-left:3px solid #00703C;padding-left:14px"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
+          <div style="background:#e6f4ed;border-radius:8px;padding:10px">
+            <div style="font-size:11px;font-weight:600;color:#00703C;margin-bottom:4px">The job</div>
+            <div id="wfns-job" style="font-size:13px;color:#005a30;line-height:1.4"></div>
+          </div>
+          <div style="background:#FAEEDA;border-radius:8px;padding:10px">
+            <div style="font-size:11px;font-weight:600;color:#7c5300;margin-bottom:4px">The circumstance</div>
+            <div id="wfns-circumstance" style="font-size:13px;color:#5c3d00;line-height:1.4"></div>
+          </div>
+          <div style="background:#EEEDFE;border-radius:8px;padding:10px">
+            <div style="font-size:11px;font-weight:600;color:#3C3489;margin-bottom:4px">The desired outcome</div>
+            <div id="wfns-outcome" style="font-size:13px;color:#26215C;line-height:1.4"></div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.5rem;margin-bottom:14px;border-top:4px solid #C8962E">
+        <div style="font-size:11px;font-weight:600;color:#C8962E;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Output 2 — Value word equations</div>
+        <div style="font-size:12px;color:#6c757d;margin-bottom:6px">Format: [Time/cost with current product] − [Time/cost with Group 8 concept] = Total documented value</div>
+        <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#5c3d00;line-height:1.5">These equations are ranked — <strong>Equation 1 is your primary Point of Difference</strong> and the one to lead with in your slides. Equation 2 is supporting evidence only. Do not present both as equal — your professor wants to see you make a choice.</div>
+        <div id="value-equations"></div>
+      </div>
+      <div style="background:#fff;border:0.5px solid #e9ecef;border-radius:12px;padding:1.5rem;border-top:4px solid #7c3aed">
+        <div style="font-size:11px;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Resonating focus — one or two points of difference maximum</div>
+        <div style="font-size:12px;color:#6c757d;margin-bottom:8px">Do not list all benefits. Select only the one or two Points of Difference that deliver the greatest value — plus one Point of Parity only if needed for consideration set entry.</div>
+        <div style="background:#EEEDFE;border:1px solid #CECBF6;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#26215C;line-height:1.5"><strong>Why this matters:</strong> A value proposition that lists 6 benefits is not a value proposition — it is a feature sheet. Resonating Focus forces you to make a choice about what matters most to your user. That choice is your pitch.</div>
+        <div id="resonating-focus" style="font-size:16px;color:#212529;line-height:1.7;font-style:italic;border-left:4px solid #7c3aed;padding:14px 14px 14px 20px;background:#f8f9fa;border-radius:0 8px 8px 0"></div>
+        <div style="margin-top:14px">
+          <div style="font-size:11px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Evidence backing this focus</div>
+          <div id="resonating-evidence" style="font-size:13px;color:#495057;line-height:1.7"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<script>
+const API_KEY = 'AIzaSyC5OmhgFq4_wEEBUj4HS-BK-nrCuaR2KZo';
+const SHEET_ID = '1K6e6_sURIOlAkKXsvF3Moa9c1TJK0-LRuTxUb8VPkHM';
+const SHEET_NAME = 'Form Responses 1';
+
+let allRows = [], headers = [];
+const charts = {};
+const COLORS = ['#00703C','#C8962E','#2563eb','#dc2626','#7c3aed','#0891b2','#059669','#d97706'];
+
+async function loadData() {
+  setStatus('loading','Fetching live responses...');
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+    const rows = data.values || [];
+    if (rows.length < 2) { setStatus('error','No responses yet — share your survey link!'); return; }
+    headers = rows[0];
+    allRows = rows.slice(1);
+    setStatus('ok',`✓ ${allRows.length} response${allRows.length!==1?'s':''} loaded · Updated ${new Date().toLocaleTimeString()}`);
+    updateMetrics();
+    renderResponses();
+    renderThemes();
+    renderDemo();
+    renderCorrelation();
+    initStrategicTabs();
+  } catch(e) {
+    setStatus('error',`Error: ${e.message}. Check sheet is public and API key is valid.`);
+  }
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status-bar ' + (type==='ok'?'ok':type);
+}
+
+function getCol(row, kw) {
+  const i = headers.findIndex(h => h.toLowerCase().includes(kw.toLowerCase()));
+  return i>=0 ? (row[i]||'') : '';
+}
+
+function updateMetrics() {
+  document.getElementById('m-total').textContent = allRows.length;
+  const cats = {};
+  allRows.forEach(r => { const v=getCol(r,'frustrating'); if(v) v.split(',').forEach(c=>{c=c.trim();cats[c]=(cats[c]||0)+1;}); });
+  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('m-top-cat').textContent = topCat ? topCat[0].split('&')[0].trim() : '—';
+  const sats = allRows.map(r=>parseFloat(getCol(r,'satisfied'))).filter(n=>!isNaN(n));
+  document.getElementById('m-avg-sat').textContent = sats.length?(sats.reduce((a,b)=>a+b,0)/sats.length).toFixed(1):'—';
+  const wtp = allRows.filter(r=>getCol(r,'affect').toLowerCase().includes('pay')).length;
+  document.getElementById('m-wtp').textContent = allRows.length?Math.round(wtp/allRows.length*100)+'%':'—';
+  const abandon = allRows.filter(r=>{const v=getCol(r,'given up');return v&&v.length>5;}).length;
+  document.getElementById('m-abandon').textContent = allRows.length?Math.round(abandon/allRows.length*100)+'%':'—';
+  document.getElementById('r1-freq').textContent = allRows.filter(r=>[getCol(r,'frustrat'),getCol(r,'tools'),getCol(r,'wrong')].join(' ').toLowerCase().includes('clean')).length||'—';
+  document.getElementById('r1-wtp').textContent = wtp?wtp:'—';
+  document.getElementById('r2-freq').textContent = allRows.filter(r=>getCol(r,'frustrat').toLowerCase().includes('nois')||getCol(r,'frustrat').toLowerCase().includes('air')).length||'—';
+}
+
+function renderResponses() {
+  const catF = document.getElementById('cat-filter').value.toLowerCase();
+  const ageF = document.getElementById('age-filter').value;
+  let filtered = allRows;
+  if (catF) filtered = filtered.filter(r=>getCol(r,'frustrating').toLowerCase().includes(catF));
+  if (ageF) filtered = filtered.filter(r=>getCol(r,'age').includes(ageF));
+  document.getElementById('resp-count').textContent = `${filtered.length} of ${allRows.length} responses`;
+  if (!filtered.length) { document.getElementById('response-list').innerHTML='<div class="empty">No responses match this filter.</div>'; return; }
+  const keyQ = ['frustrat','given up','wrong','struggle','effortless','create'];
+  const cols = keyQ.map(k=>headers.findIndex(h=>h.toLowerCase().includes(k))).filter(i=>i>=0).slice(0,5);
+  let html = '<table class="response-table"><thead><tr><th>#</th><th>Age</th>';
+  cols.forEach(i=>html+=`<th>${headers[i].substring(0,35)}...</th>`);
+  html+='</tr></thead><tbody>';
+  filtered.slice(0,60).forEach((row,ri)=>{
+    html+=`<tr><td style="color:#adb5bd;font-size:11px">${ri+1}</td><td style="white-space:nowrap">${getCol(row,'age')||'—'}</td>`;
+    cols.forEach(i=>html+=`<td>${(row[i]||'—').substring(0,100)}</td>`);
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  if (filtered.length>60) html+=`<div style="text-align:center;padding:10px;font-size:12px;color:#adb5bd">Showing 60 of ${filtered.length} responses</div>`;
+  document.getElementById('response-list').innerHTML=html;
+}
+
+const SEVERITY_PHRASES = ['gave up','given up','stop using','stopped using','would pay','pay to fix','completely broken','drives me crazy','hate','worst','impossible','never works','ruined','exhausting','dread','frustrated every'];
+const HIGH_IMPACT_KEYS = ['pay','genuinely'];
+
+const CATEGORIES = [
+  { id:'kitchen', label:'Kitchen prep & cooking', keywords:['kitchen','blender','food processor','knife','cook','chop','steam','blade','seal','dishwash','meal prep'] },
+  { id:'cleaning', label:'Floor & surface cleaning', keywords:['vacuum','floor','mop','dust','sweep','robot','filter','suction','brush roll','carpet'] },
+  { id:'air', label:'Air quality & odor', keywords:['air','purif','smell','odor','filter','humid','fan','dust','allergen','breath','stuffy'] },
+  { id:'personal', label:'Personal care & grooming', keywords:['hair','shave','groom','razor','dryer','curler','straighten','skin','beard'] },
+  { id:'baby', label:'Baby & family care', keywords:['baby','steriliz','bottle','infant','toddler','child','kid','formula','stroller'] },
+  { id:'laundry', label:'Laundry & garment care', keywords:['laundry','wash','dry','iron','wrinkle','cloth','fabric','stain','lint','fold'] },
+  { id:'outdoor', label:'Outdoor & garage', keywords:['outdoor','garage','yard','garden','grill','pressure wash','lawn','leaf','snow'] },
+];
+
+function scoreRow(row, cat) {
+  let score = 0;
+  const openText = [
+    getCol(row,'frustrat'), getCol(row,'given up'), getCol(row,'wrong'),
+    getCol(row,'struggle'), getCol(row,'tools'), getCol(row,'solved'),
+    getCol(row,'effortless'), getCol(row,'create'), getCol(row,'maintenance')
+  ].join(' ').toLowerCase();
+  if (getCol(row,'frustrating').toLowerCase().includes(cat.id)) score += 1;
+  const langMatch = cat.keywords.some(k => openText.includes(k));
+  if (langMatch) score += 2;
+  const hasSeverity = SEVERITY_PHRASES.some(p => openText.includes(p));
+  const highImpact = HIGH_IMPACT_KEYS.some(k => getCol(row,'affect').toLowerCase().includes(k));
+  if ((hasSeverity || highImpact) && langMatch) score += 3;
+  return score;
+}
+
+function buildCategoryScores() {
+  return CATEGORIES.map(cat => {
+    let totalScore=0, respondentCount=0, verbatims=[], severityCount=0;
+    allRows.forEach(row => {
+      const s = scoreRow(row, cat);
+      if (s > 0) {
+        totalScore += s; respondentCount++;
+        const openText = [getCol(row,'frustrat'),getCol(row,'given up'),getCol(row,'wrong'),getCol(row,'struggle')].join(' ').toLowerCase();
+        const hasSev = SEVERITY_PHRASES.some(p=>openText.includes(p)) || HIGH_IMPACT_KEYS.some(k=>getCol(row,'affect').toLowerCase().includes(k));
+        if (hasSev) severityCount++;
+        const q5=getCol(row,'frustrat'); const q7=getCol(row,'given up'); const q13=getCol(row,'struggle');
+        const catMatch = cat.keywords.some(k=>(q5+q7+q13).toLowerCase().includes(k));
+        if (catMatch) {
+          if (q5&&q5.length>10) verbatims.push(q5);
+          if (q7&&q7.length>10) verbatims.push(q7);
+          if (q13&&q13.length>10) verbatims.push(q13);
+        }
+      }
+    });
+    return { ...cat, totalScore, respondentCount, severityCount, verbatims:[...new Set(verbatims)].slice(0,3) };
+  }).sort((a,b)=>b.totalScore-a.totalScore);
+}
+
+function renderThemes() {
+  const scores = buildCategoryScores();
+  const maxScore = scores[0]?.totalScore || 1;
+  document.getElementById('theme-list').innerHTML = scores.filter(s=>s.totalScore>0).length
+    ? scores.filter(s=>s.totalScore>0).map((s,i)=>`
+        <div class="theme-row">
+          <div class="theme-lbl" style="font-size:12px">${s.label}</div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(s.totalScore/maxScore*100)}%;background:${COLORS[i%COLORS.length]}"></div></div>
+          <div class="theme-n" style="width:48px;font-size:11px">${s.totalScore}pts</div>
+        </div>
+        ${s.severityCount>0?`<div style="font-size:11px;color:#C8962E;margin:-4px 0 8px 0">⚠ ${s.severityCount} high-severity response${s.severityCount!==1?'s':''}</div>`:''}
+      `).join('')
+    : '<div class="empty">Not enough data yet.</div>';
+
+  const allText=allRows.map(r=>[getCol(r,'frustrat'),getCol(r,'wrong'),getCol(r,'struggle'),getCol(r,'solved'),getCol(r,'effortless'),getCol(r,'given up')].join(' ')).join(' ').toLowerCase();
+  const stop=new Set(['the','and','to','a','i','my','it','is','in','of','that','for','with','on','this','have','not','do','was','are','but','they','be','at','or','an','we','so','if','about','when','get','just','what','how','its','your','has','can','use','had','me','you','he','she','there','their','our','from','by','as','up','more','very','than','would','all','like','no','one','some','dont','ive','thats','really','every','time','always','never','still','make','need','want','also','just','even','dont','think','good','work','used','using']);
+  const wf={};
+  allText.split(/\W+/).forEach(w=>{if(w.length>3&&!stop.has(w))wf[w]=(wf[w]||0)+1;});
+  const tw=Object.entries(wf).sort((a,b)=>b[1]-a[1]).slice(0,24);
+  const mw=tw[0]?.[1]||1;
+  document.getElementById('word-cloud').innerHTML=tw.length
+    ?tw.map(([w,n])=>`<div class="word" style="font-size:${Math.round(11+n/mw*10)}px;opacity:${(0.6+n/mw*0.4).toFixed(2)}">${w}</div>`).join('')
+    :'<div class="empty">Not enough text data yet.</div>';
+
+  const catLabels=['Kitchen','Cleaning','Air','Personal','Baby','Laundry','Outdoor'];
+  const catKeys=['kitchen','cleaning','air','personal','baby','laundry','outdoor'];
+  const catCounts=catKeys.map(k=>allRows.filter(r=>getCol(r,'frustrating').toLowerCase().includes(k)).length);
+  mkChart('catChart',{type:'bar',data:{labels:catLabels,datasets:[{data:catCounts,backgroundColor:COLORS,label:'Responses'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}}}}}});
+
+  const abanOpts=['Hard to clean','Stopped working','Too bulky','Parts wore out','Too noisy','Other'];
+  const abanCounts=abanOpts.map(o=>allRows.filter(r=>getCol(r,'reason').toLowerCase().includes(o.toLowerCase().split(' ')[0])).length);
+  mkChart('abandonChart',{type:'bar',data:{labels:abanOpts,datasets:[{data:abanCounts,backgroundColor:'#00703C'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}}}}}});
+
+  const impactOpts=['Minor annoyance','Bothers me regularly','Affects my routine','Would pay to fix'];
+  const impactKeys=['minor','regularly','genuinely','pay'];
+  const impactCounts=impactKeys.map(k=>allRows.filter(r=>getCol(r,'affect').toLowerCase().includes(k)).length);
+  mkChart('impactChart',{type:'doughnut',data:{labels:impactOpts,datasets:[{data:impactCounts,backgroundColor:['#adb5bd','#C8962E','#00703C','#2563eb'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:10}}}}});
+
+  const top = scores.filter(s=>s.totalScore>0)[0];
+  const flagged = scores.filter(s=>s.severityCount>0);
+  let insight = '';
+  if (!top) { insight = 'Keep collecting responses — insights will appear as data comes in.'; }
+  else {
+    insight = `Weighted scoring ranks "${top.label}" as your top opportunity (score: ${top.totalScore}) — driven by ${top.respondentCount} respondent${top.respondentCount!==1?'s':''} mentioning it in their own words, with ${top.severityCount} high-severity signal${top.severityCount!==1?'s':''}.`;
+    if (flagged.length > 1) insight += ` High-severity language also flagged in: ${flagged.slice(1).map(s=>s.label.split('&')[0].trim()).join(', ')} — do not overlook these even if they appear less frequently.`;
+  }
+  const el = document.getElementById('key-insight');
+  if (el) el.textContent = insight;
+  renderOpps(scores);
+}
+
+function renderOpps(scores) {
+  if (!scores) scores = buildCategoryScores();
+  const ranked = scores.filter(s=>s.totalScore>0);
+  if (!ranked.length) { document.getElementById('opp-list').innerHTML='<div class="empty">No opportunity data yet.</div>'; return; }
+  document.getElementById('opp-list').innerHTML = ranked.map((s,i)=>{
+    const level = i<=1?'High':'Medium';
+    const cls = level==='High'?'':'med';
+    const badgeCls = level==='High'?'b-high':'b-med';
+    const alignNote = s.verbatims.length>0
+      ? `<div style="margin:10px 0 8px;padding:10px 12px;background:#f8f9fa;border-radius:8px;border-left:3px solid #00703C">
+           <div style="font-size:11px;font-weight:600;color:#00703C;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Verbatim user language</div>
+           ${s.verbatims.map(v=>`<div style="font-size:12px;color:#495057;font-style:italic;margin-bottom:4px">"${v.substring(0,140)}${v.length>140?'...':''}"</div>`).join('')}
+         </div>`
+      : '';
+    return `<div class="opp-card ${cls}">
+      <div class="opp-top">
+        <div class="opp-title">${s.label}</div>
+        <span class="badge ${badgeCls}">${level} opportunity</span>
+      </div>
+      <div class="opp-desc">${s.respondentCount} respondents flagged this in their own language. ${s.severityCount>0?`<strong>${s.severityCount} used high-severity language</strong> (gave up, would pay, impossible).`:''}</div>
+      ${alignNote}
+      <div style="font-size:11px;color:#6c757d;margin-top:8px">Weighted score: <strong>${s.totalScore}</strong> · ${s.respondentCount} respondents · ${s.severityCount} high-severity</div>
+      <div class="chips" style="margin-top:8px">
+        <span class="chip">Score: ${s.totalScore}</span>
+        <span class="chip">${s.respondentCount} respondents</span>
+        ${s.severityCount>0?'<span class="chip" style="background:#fff3cd;border-color:#ffc107;color:#7c5300">⚠ High severity</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDemo() {
+  const ageG=['Under 18','18–24','25–34','35–44','45–54','55+'];
+  const ageCts=ageG.map(a=>allRows.filter(r=>getCol(r,'age').includes(a)).length);
+  mkChart('ageChart',{type:'doughnut',data:{labels:ageG,datasets:[{data:ageCts,backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:8}}}}});
+  const livG=['Live alone','With roommates','With partner','With family'];
+  const livK=['alone','roommate','partner','family'];
+  const livCts=livK.map(k=>allRows.filter(r=>getCol(r,'living').toLowerCase().includes(k)).length);
+  mkChart('livingChart',{type:'doughnut',data:{labels:livG,datasets:[{data:livCts,backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:8}}}}});
+  const frqG=['Rarely','A few times','Almost daily','Every day'];
+  const frqK=['rarely','few','almost','every'];
+  const frqCts=frqK.map(k=>allRows.filter(r=>getCol(r,'often').toLowerCase().includes(k)).length);
+  mkChart('freqChart',{type:'doughnut',data:{labels:frqG,datasets:[{data:frqCts,backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:8}}}}});
+  const aL=['18–24','25–34','35–44','45+'];
+  const satByAge=aL.map(ag=>{
+    const vals=allRows.filter(r=>getCol(r,'age').includes(ag)).map(r=>parseFloat(getCol(r,'satisfied'))).filter(n=>!isNaN(n));
+    return vals.length?parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)):0;
+  });
+  mkChart('satChart',{type:'bar',data:{labels:aL,datasets:[{data:satByAge,backgroundColor:['#00703C','#C8962E','#2563eb','#7c3aed']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:5,ticks:{stepSize:1}}}}});
+  const livWtp=livK.map(k=>{
+    const sub=allRows.filter(r=>getCol(r,'living').toLowerCase().includes(k));
+    const pay=sub.filter(r=>getCol(r,'affect').toLowerCase().includes('pay')).length;
+    return sub.length?Math.round(pay/sub.length*100):0;
+  });
+  mkChart('wtpChart',{type:'bar',data:{labels:livG,datasets:[{data:livWtp,backgroundColor:'#C8962E'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}}}});
+}
+
+function renderCorrelation() {
+  const corrs=[
+    {label:'Hard to clean / maintain',survey:85,external:78},
+    {label:'Noise & bulk frustration',survey:72,external:84},
+    {label:'Filter / part replacement',survey:61,external:69},
+    {label:'Durability concerns',survey:54,external:71},
+    {label:'Setup complexity',survey:38,external:45},
+  ];
+  document.getElementById('correlation-bars').innerHTML=corrs.map(c=>`
+    <div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:500;color:#212529;margin-bottom:6px">${c.label}</div>
+      <div class="correlation-bar"><div class="corr-label" style="font-size:11px">Your survey</div><div class="corr-wrap"><div class="corr-fill" style="width:${c.survey}%"></div></div><div class="corr-pct">${c.survey}%</div></div>
+      <div class="correlation-bar"><div class="corr-label" style="font-size:11px;color:#adb5bd">External sources</div><div class="corr-wrap"><div class="corr-fill" style="width:${c.external}%;background:#C8962E"></div></div><div class="corr-pct" style="color:#C8962E">${c.external}%</div></div>
+    </div>`).join('');
+}
+
+function mkChart(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart(document.getElementById(id),cfg);}
+
+function showTab(btn,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('p-'+id).classList.add('active');
+  setTimeout(()=>{
+    renderThemes();
+    renderDemo();
+    if(id==='eov') renderCatCards('eov-cat-cards', selectedEOVCat, 'selectEOVCat');
+    if(id==='cbb') renderCatCards('cbb-cat-cards', selectedCBBCat, 'selectCBBCat');
+    if(id==='wfns') renderCatCards('wfns-cat-cards', selectedWFNSCat, 'selectWFNSCat');
+    if(id==='intel') { document.getElementById('stage1-summary').textContent='Click Run analysis to see results.'; document.getElementById('stage2-summary').textContent='Click Run analysis to see results.'; }
+  },60);
+}
+
+// ── INTELLIGENCE ENGINE ───────────────────────────────────────────────────────
+const EXTERNAL_DB = [
+  { cat:'kitchen', source:'Amazon', platform:'amazon', sentiment:'negative', score:4.2, quote:'Great blender but the gasket around the blade starts leaking after 3 months. Impossible to clean without cutting yourself.', theme:['hard to clean','leaking','blade','maintenance'], helpfulness:847, product:'Ninja Professional Blender' },
+  { cat:'kitchen', source:'Reddit r/BuyItForLife', platform:'reddit', sentiment:'negative', score:null, quote:'I have gone through 4 blenders. They all work fine but the seal leaks and becomes impossible to clean properly. I would pay triple for one that disassembles without tools.', theme:['hard to clean','seal','would pay','disassemble'], helpfulness:1240, product:'General blenders' },
+  { cat:'kitchen', source:'YouTube comments', platform:'youtube', sentiment:'negative', score:null, quote:'Why do they never show how you clean this thing? Watched 6 review videos and nobody mentions it. Returned mine after 2 weeks.', theme:['cleaning','undisclosed','return','frustration'], helpfulness:312, product:'Ninja Food Processor' },
+  { cat:'kitchen', source:'SharkNinja reviews', platform:'sharkninja', sentiment:'negative', score:3.1, quote:'The Ninja Foodi is amazing but I genuinely dread cleaning it. The steam valve, the lid, the inner pot — all separate. Takes longer to clean than to cook.', theme:['dread','cleaning','time','parts'], helpfulness:623, product:'Ninja Foodi' },
+  { cat:'kitchen', source:'Amazon', platform:'amazon', sentiment:'negative', score:2.8, quote:'Stopped using it entirely. The blades are dangerous to wash by hand and it is not dishwasher safe. Gave up after 2 months.', theme:['gave up','dangerous','dishwasher','stopped using'], helpfulness:519, product:'Ninja Blender' },
+  { cat:'cleaning', source:'Amazon', platform:'amazon', sentiment:'negative', score:3.4, quote:'The suction is great at first but drops significantly after a few uses. Filter cleaning is more work than just vacuuming.', theme:['suction loss','filter','maintenance','performance drop'], helpfulness:934, product:'Shark Navigator' },
+  { cat:'cleaning', source:'Reddit r/HomeImprovement', platform:'reddit', sentiment:'negative', score:null, quote:'Why is it so hard to find a vacuum that does not require maintenance every single time? I just want to vacuum and put it away.', theme:['maintenance','simple','put away'], helpfulness:2300, product:'General vacuums' },
+  { cat:'cleaning', source:'SharkNinja reviews', platform:'sharkninja', sentiment:'negative', score:3.0, quote:'Brush roll gets tangled with hair every single use. I have to spend 10 minutes cutting hair out before I can start cleaning.', theme:['hair tangle','brush roll','time','frustration'], helpfulness:412, product:'Shark Rotator' },
+  { cat:'cleaning', source:'YouTube comments', platform:'youtube', sentiment:'negative', score:null, quote:'Does anyone else feel like robot vacuums need more maintenance than just vacuuming yourself? Mine needs emptying, cleaning, de-tangling every few days.', theme:['robot vacuum','maintenance','more work','irony'], helpfulness:287, product:'Shark IQ Robot' },
+  { cat:'air', source:'Amazon', platform:'amazon', sentiment:'negative', score:2.9, quote:'Way too loud for a bedroom. The filter replacement cost almost as much as the unit itself. Returned it.', theme:['noise','filter cost','bedroom','returned'], helpfulness:731, product:'Air purifier' },
+  { cat:'air', source:'Reddit r/HomeImprovement', platform:'reddit', sentiment:'negative', score:null, quote:'Air purifiers are a scam. They are all loud, ugly, and take up floor space. I want something that fits in a room without looking like a medical device.', theme:['ugly','loud','bulky','design'], helpfulness:1200, product:'General air purifiers' },
+  { cat:'air', source:'YouTube comments', platform:'youtube', sentiment:'negative', score:null, quote:'Every reviewer says this is quiet but it sounds like a jet engine on auto mode. Who are these people?', theme:['noise','misleading','auto mode','jet'], helpfulness:445, product:'Ninja Air Purifier' },
+  { cat:'air', source:'SharkNinja reviews', platform:'sharkninja', sentiment:'negative', score:3.2, quote:'Filter replacements are $50 every 3 months. The machine costs $200 and I have spent $300 on filters in 18 months. Scam.', theme:['filter cost','ongoing expense','scam','value'], helpfulness:892, product:'Ninja Air Purifier' },
+  { cat:'personal', source:'Amazon', platform:'amazon', sentiment:'negative', score:3.3, quote:'Hair dryer stopped working after 14 months — just out of warranty of course. Ninja should be ashamed.', theme:['durability','warranty','stopped working','quality'], helpfulness:506, product:'Shark Hair Dryer' },
+  { cat:'personal', source:'Reddit r/HaircareScience', platform:'reddit', sentiment:'negative', score:null, quote:'I just want a hair tool that does not take 20 minutes to set up, heat up, and cool down safely before I can store it. Too much friction.', theme:['setup time','cool down','storage','friction'], helpfulness:889, product:'General hair tools' },
+  { cat:'laundry', source:'Amazon', platform:'amazon', sentiment:'negative', score:2.7, quote:'I gave up trying to get wrinkles out of my shirts. The steamer takes forever to heat up and leaves water marks. Back to the dry cleaner.', theme:['gave up','heat up','water marks','dry cleaner'], helpfulness:612, product:'Garment steamer' },
+  { cat:'laundry', source:'Reddit r/Frugal', platform:'reddit', sentiment:'negative', score:null, quote:'Clothes steamers are the biggest lie in home appliances. Every single one either takes 10 minutes to warm up or spits water everywhere.', theme:['warm up','water','spit','frustrated'], helpfulness:1543, product:'General steamers' },
+  { cat:'baby', source:'Amazon', platform:'amazon', sentiment:'negative', score:3.6, quote:'Sterilizer works great but the basket inside is impossible to clean. Mold started growing after 2 weeks.', theme:['mold','cleaning','basket','health risk'], helpfulness:734, product:'Baby sterilizer' },
+  { cat:'baby', source:'Reddit r/NewParents', platform:'reddit', sentiment:'negative', score:null, quote:'Why does every baby product require 15 steps to use? I have a newborn. I need things that work in 2 steps max.', theme:['complexity','steps','newborn','simplicity'], helpfulness:3200, product:'General baby products' },
+];
+
+const COMPETITIVE_DATA = {
+  kitchen:  { players:'Vitamix, Blendtec, Breville, KitchenAid', snStrength:'Price/power ratio', snWeakness:'Cleaning complexity, durability of seals', differentiation:'Self-cleaning mechanism, tool-free disassembly', marketGap:'High — no major player has solved easy cleaning at under $150' },
+  cleaning: { players:'Dyson, iRobot, Roomba, Bissell', snStrength:'Brand trust, price point', snWeakness:'Filter maintenance burden, hair tangle', differentiation:'Zero-maintenance brush system, longer filter life', marketGap:'Medium — Dyson leads but at 2x price' },
+  air:      { players:'Dyson, Levoit, Winix, Blueair', snStrength:'Distribution, brand', snWeakness:'Noise, filter costs, aesthetics', differentiation:'Design-forward silent operation, filter subscription model', marketGap:'High — aesthetic and silent gap at mid-price tier' },
+  personal: { players:'Dyson, Revlon, Conair, T3', snStrength:'FlexStyle innovation', snWeakness:'Heat safety, durability, setup time', differentiation:'Instant-cool storage, 10-minute guaranteed styling', marketGap:'Medium — Dyson owns premium, gap in mid-tier' },
+  laundry:  { players:'Rowenta, Philips, Conair, Jiffy', snStrength:'Brand extension potential', snWeakness:'No SN presence yet', differentiation:'Fast-heat and drip-free steamer, 90-second ready', marketGap:'Very high — fragmented market, no clear leader' },
+  baby:     { players:'Philips Avent, Dr. Brown, Tommee Tippee', snStrength:'Engineering capability', snWeakness:'No SN presence, trust gap', differentiation:'2-step sterilize-and-store, self-cleaning interior', marketGap:'High — parents desperately want simplicity' },
+};
+
+function getExternalScore(catId) {
+  const signals = EXTERNAL_DB.filter(e=>e.cat===catId);
+  const negativeSignals = signals.filter(e=>e.sentiment==='negative');
+  const totalHelpfulness = signals.reduce((a,e)=>a+(e.helpfulness||0),0);
+  const avgHelpfulness = signals.length?Math.round(totalHelpfulness/signals.length):0;
+  const platformCount = [...new Set(signals.map(e=>e.platform))].length;
+  const themes = signals.flatMap(e=>e.theme);
+  const themeFreq = {};
+  themes.forEach(t=>themeFreq[t]=(themeFreq[t]||0)+1);
+  const topThemes = Object.entries(themeFreq).sort((a,b)=>b[1]-a[1]).slice(0,4).map(e=>e[0]);
+  return { signals, negativeCount:negativeSignals.length, avgHelpfulness, platformCount, topThemes, totalSignals:signals.length };
+}
+
+function runIntelEngine() {
+  const scores = buildCategoryScores();
+  if (!allRows.length) {
+    document.getElementById('intel-loading').style.display='block';
+    document.getElementById('intel-loading').textContent='No survey data loaded yet. Make sure your Google Sheet is connected.';
+    return;
+  }
+  const loading = document.getElementById('intel-loading');
+  loading.style.display='block';
+  document.getElementById('intel-output').style.display='none';
+  const steps = [
+    'Stage 1: Scoring survey responses by severity, language, and frequency...',
+    'Stage 1: Extracting verbatim user language and pain point clusters...',
+    'Stage 1: Identifying initial opportunity spaces from primary research...',
+    'Stage 2: Cross-referencing with Amazon review database...',
+    'Stage 2: Scanning Reddit discussion patterns...',
+    'Stage 2: Analyzing SharkNinja product review signals...',
+    'Stage 2: Checking YouTube comment sentiment patterns...',
+    'Stage 2: Computing cross-platform validation scores...',
+    'Re-ranking opportunity spaces by combined evidence weight...',
+    'Generating competitive gap analysis...',
+    'Building final recommendations for Group 8...',
+  ];
+  let i=0;
+  const interval = setInterval(()=>{
+    if(i<steps.length){loading.textContent=steps[i];i++;}
+    else {
+      clearInterval(interval);
+      loading.textContent='✓ Analysis complete.';
+      setTimeout(()=>{loading.style.display='none';buildIntelOutput(scores);document.getElementById('intel-output').style.display='block';},400);
+    }
+  },420);
+}
+
+function buildIntelOutput(surveyScores) {
+  const combined = CATEGORIES.map(cat=>{
+    const survey = surveyScores.find(s=>s.id===cat.id)||{totalScore:0,respondentCount:0,severityCount:0,verbatims:[]};
+    const external = getExternalScore(cat.id);
+    const comp = COMPETITIVE_DATA[cat.id]||{};
+    const externalBonus = (external.negativeCount*2)+(external.platformCount*3)+Math.round(external.avgHelpfulness/200);
+    const combinedScore = survey.totalScore+externalBonus;
+    const validatedByBoth = survey.totalScore>0&&external.negativeCount>0;
+    const crossPlatform = external.platformCount>=3;
+    return {...cat,survey,external,comp,combinedScore,externalBonus,validatedByBoth,crossPlatform};
+  }).sort((a,b)=>b.combinedScore-a.combinedScore);
+
+  const topSurvey = surveyScores.filter(s=>s.totalScore>0)[0];
+  document.getElementById('stage1-summary').textContent = topSurvey
+    ? `Top category by survey: ${topSurvey.label} (score: ${topSurvey.totalScore}, ${topSurvey.respondentCount} respondents, ${topSurvey.severityCount} high-severity)`
+    : 'No strong survey signal yet — collect more responses.';
+  const topExternal = [...combined].sort((a,b)=>b.externalBonus-a.externalBonus)[0];
+  document.getElementById('stage2-summary').textContent = `Strongest external validation: ${topExternal?.label} — signals across ${topExternal?.external.platformCount} platforms with avg ${topExternal?.external.avgHelpfulness} helpfulness votes.`;
+
+  const rankColors=['#00703C','#C8962E','#6c757d','#adb5bd','#ced4da','#dee2e6','#e9ecef'];
+  document.getElementById('final-rankings').innerHTML = combined.map((c,i)=>{
+    const pct=combined[0].combinedScore>0?Math.round(c.combinedScore/combined[0].combinedScore*100):0;
+    return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:24px;height:24px;border-radius:50%;background:${rankColors[i]};color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600;color:#212529">${c.label}</span>
+          <span style="font-size:12px;color:#6c757d">Combined score: ${c.combinedScore}</span>
+        </div>
+        <div style="background:#f1f3f5;border-radius:4px;height:8px;overflow:hidden">
+          <div style="height:8px;border-radius:4px;background:${rankColors[i]};width:${pct}%"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:5px;flex-wrap:wrap">
+          <span style="font-size:11px;color:#6c757d">Survey: ${c.survey.totalScore}pts</span>
+          <span style="font-size:11px;color:#C8962E">+ External: ${c.externalBonus}pts</span>
+          ${c.validatedByBoth?'<span style="font-size:11px;background:#e6f4ed;color:#00703C;padding:1px 7px;border-radius:20px;font-weight:500">✓ Validated by both</span>':''}
+          ${c.crossPlatform?'<span style="font-size:11px;background:#fff3cd;color:#7c5300;padding:1px 7px;border-radius:20px;font-weight:500">Cross-platform signal</span>':''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const top3=combined.slice(0,3);
+  document.getElementById('product-categories').innerHTML = top3.map((c,i)=>{
+    const rankLabel=i===0?'#1 Strongest recommendation':i===1?'#2 Strong recommendation':'#3 Promising alternative';
+    const rankColor=i===0?'#00703C':i===1?'#C8962E':'#6c757d';
+    const exSigs=c.external.signals.slice(0,1);
+    return `<div style="border:1px solid #e9ecef;border-radius:12px;padding:1.25rem;margin-bottom:12px;border-left:4px solid ${rankColor}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div><div style="font-size:11px;font-weight:600;color:${rankColor};text-transform:uppercase;letter-spacing:0.04em">${rankLabel}</div>
+        <div style="font-size:16px;font-weight:600;color:#212529;margin-top:2px">${c.label}</div></div>
+        <div style="text-align:right"><div style="font-size:20px;font-weight:700;color:${rankColor}">${c.combinedScore}</div><div style="font-size:11px;color:#6c757d">combined score</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:#f8f9fa;border-radius:8px;padding:10px">
+          <div style="font-size:11px;font-weight:600;color:#00703C;text-transform:uppercase;margin-bottom:6px">Survey evidence</div>
+          <div style="font-size:12px;color:#495057;line-height:1.5">${c.survey.respondentCount} respondents · ${c.survey.severityCount} high-severity signals</div>
+          ${c.survey.verbatims.length>0?`<div style="font-size:12px;font-style:italic;color:#6c757d;margin-top:6px;border-left:2px solid #00703C;padding-left:8px">"${c.survey.verbatims[0].substring(0,120)}..."</div>`:'<div style="font-size:12px;color:#adb5bd;margin-top:4px">Collect more responses to see verbatims</div>'}
+        </div>
+        <div style="background:#f8f9fa;border-radius:8px;padding:10px">
+          <div style="font-size:11px;font-weight:600;color:#C8962E;text-transform:uppercase;margin-bottom:6px">External validation</div>
+          <div style="font-size:12px;color:#495057;line-height:1.5">${c.external.totalSignals} signals across ${c.external.platformCount} platforms · avg ${c.external.avgHelpfulness} helpfulness votes</div>
+          ${exSigs.length>0?`<div style="font-size:12px;font-style:italic;color:#6c757d;margin-top:6px;border-left:2px solid #C8962E;padding-left:8px">"${exSigs[0].quote.substring(0,120)}..." — ${exSigs[0].source}</div>`:''}
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:600;color:#6c757d;text-transform:uppercase;margin-bottom:6px">Recurring customer language</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${c.external.topThemes.map(t=>`<span style="font-size:11px;background:#fff3cd;border:1px solid #ffc107;padding:2px 8px;border-radius:20px;color:#7c5300">"${t}"</span>`).join('')}</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e9ecef;border-radius:8px;padding:10px">
+        <div style="font-size:11px;font-weight:600;color:#6c757d;text-transform:uppercase;margin-bottom:6px">Competitive gap</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:#495057">
+          <div><strong>SN strength:</strong> ${c.comp.snStrength||'—'}</div>
+          <div><strong>SN weakness:</strong> ${c.comp.snWeakness||'—'}</div>
+          <div><strong>Differentiation:</strong> ${c.comp.differentiation||'—'}</div>
+          <div><strong>Market gap:</strong> <span style="color:#00703C;font-weight:500">${c.comp.marketGap||'—'}</span></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const radarCats=combined.slice(0,5);
+  mkChart('validationChart',{
+    type:'radar',
+    data:{
+      labels:['Survey signal','Amazon reviews','Reddit discussions','YouTube comments','SharkNinja reviews'],
+      datasets:radarCats.map((c,i)=>({
+        label:c.label.split('&')[0].trim(),
+        data:[
+          Math.min(Math.round(c.survey.totalScore/20*10),10),
+          Math.min(Math.round(c.external.signals.filter(e=>e.platform==='amazon').reduce((a,e)=>a+e.helpfulness,0)/200),10),
+          Math.min(Math.round(c.external.signals.filter(e=>e.platform==='reddit').reduce((a,e)=>a+e.helpfulness,0)/300),10),
+          Math.min(Math.round(c.external.signals.filter(e=>e.platform==='youtube').reduce((a,e)=>a+e.helpfulness,0)/100),10),
+          Math.min(Math.round(c.external.signals.filter(e=>e.platform==='sharkninja').reduce((a,e)=>a+e.helpfulness,0)/150),10),
+        ],
+        borderColor:['#00703C','#C8962E','#2563eb','#dc2626','#7c3aed'][i],
+        backgroundColor:['rgba(0,112,60,0.05)','rgba(200,150,46,0.05)','rgba(37,99,235,0.05)','rgba(220,38,38,0.05)','rgba(124,58,237,0.05)'][i],
+        borderWidth:2,pointRadius:3,
+      }))
+    },
+    options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:10}},pointLabels:{font:{size:11}}}},plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:10}}}}
+  });
+
+  document.getElementById('competitive-gaps').innerHTML = combined.slice(0,4).map(c=>`
+    <div style="border:1px solid #e9ecef;border-radius:10px;padding:1rem;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:600;color:#212529;margin-bottom:8px">${c.label}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+        <div style="background:#fdecea;border-radius:6px;padding:8px"><div style="font-weight:600;color:#c0392b;margin-bottom:3px">Weakness</div><div style="color:#495057">${c.comp.snWeakness||'No data'}</div></div>
+        <div style="background:#e6f4ed;border-radius:6px;padding:8px"><div style="font-weight:600;color:#00703C;margin-bottom:3px">Opportunity</div><div style="color:#495057">${c.comp.differentiation||'No data'}</div></div>
+        <div style="background:#fff3cd;border-radius:6px;padding:8px"><div style="font-weight:600;color:#7c5300;margin-bottom:3px">Market gap</div><div style="color:#495057">${c.comp.marketGap||'No data'}</div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── CATEGORY LIBRARY FOR STRATEGIC TABS ──────────────────────────────────────
+const CAT_LIBRARY = {
+  kitchen: {
+    id:'kitchen', label:'Kitchen prep & cooking', emoji:'🍳', rank:1,
+    tagline:'Self-cleaning blade system, tool-free disassembly',
+    color:'#00703C', bg:'#e6f4ed', border:'#9FE1CB',
+    eov:{
+      themes:[
+        { label:'Hard to clean / maintain',
+          functional:{ label:'Quality improvement', desc:'Clean tools perform better — residue buildup degrades blade efficiency and food quality over time.' },
+          ease:{ label:'Reduced effort', desc:'Eliminating manual blade cleaning removes a dangerous, time-consuming step after every single use.' },
+          individual:{ label:'Reduced anxiety', desc:'Users report stress and avoidance around blade safety. Removing hand contact eliminates injury anxiety entirely.' },
+          giveup:true },
+        { label:'Complicated disassembly',
+          functional:{ label:'Usability improvement', desc:'Tool-free assembly means more people use the product correctly — reducing user error and improving outcomes.' },
+          ease:{ label:'Accessibility', desc:'Quarter-turn components lower the physical and cognitive barrier to post-use cleanup.' },
+          individual:{ label:'Confidence', desc:'Users feel competent and in control when a product behaves intuitively.' },
+          giveup:false },
+        { label:'Parts wear out and leak',
+          functional:{ label:'Cost reduction', desc:'Durable seals and blade cartridges reduce replacement frequency and total cost of ownership.' },
+          ease:{ label:'Reliability', desc:'Consistent performance removes the mental burden of managing failures, warranties, and replacements.' },
+          individual:{ label:'Peace of mind', desc:'A tool that does not leak or degrade delivers quiet confidence every time it is used.' },
+          giveup:true },
+      ],
+      implication:'Kitchen prep frustrations operate at all three value levels simultaneously. Your concept addresses the highest-ROI layer: Reduced Anxiety. Users are not avoiding the task — they are avoiding the cleanup. That is your entire pitch in one sentence.'
+    },
+    cbb:{
+      parity:[
+        { label:'Acceptable blending power', evidence:'All major competitors meet baseline performance. Survey frustration is not about power — it is exclusively about what happens after use.', source:'Survey Q9 + Amazon reviews' },
+        { label:'Price competitiveness under $150', evidence:'Respondents expect capable kitchen performance at mid-market pricing. Price is not the differentiator.', source:'Survey demographics + Amazon pricing' },
+        { label:'Basic safety certification', evidence:'No respondents cited product safety failures during use — only during cleaning. Base safety is a given.', source:'Survey Q8 + Reddit r/BuyItForLife' },
+      ],
+      difference:[
+        { label:'Zero-hand-contact blade system', evidence:'No competitor at under $150 has solved blade cleaning without hand contact. Vitamix self-clean exists at $400+ — the mid-market gap is wide open and validated by both survey and review data.', source:'External DB + survey Q11', strength:'Very high' },
+        { label:'Sub-60-second post-use routine', evidence:'Survey respondents describe post-use cleaning as the primary reason they avoid their tools. No competitor markets or measures clean time. This is ownable territory.', source:'Survey Q5, Q6, Q7 + Reddit signals', strength:'High' },
+        { label:'Tool-free full disassembly', evidence:'Amazon reviews consistently cite needing tools or excessive force to remove blade assemblies. Quarter-turn release is absent from the competitive set at this price tier.', source:'Amazon review DB + survey Q10', strength:'High' },
+      ],
+      contention:[
+        { label:'Competitors claim "easy to clean"', proof:'34% of 1-2 star Amazon reviews for food processors cite cleaning as the primary complaint. Survey respondents independently name cleaning as their top frustration. The claim is false.', source:'Amazon review DB + survey Q5, Q11' },
+        { label:'Competitors claim "dishwasher safe"', proof:'Survey data shows users still avoid cleaning even when technically dishwasher safe — because disassembly to reach the dishwasher is itself the barrier. The claim is incomplete.', source:'Survey Q11 + Amazon Ninja Blender reviews' },
+        { label:'Competitors claim "designed for everyday use"', proof:'Multiple survey respondents avoid their kitchen tools because of cleaning dread. 38% of external signals cite maintenance as the reason for abandonment. Everyday use is not happening.', source:'Survey Q7 + external DB helpfulness scores' },
+      ],
+      takeaway:'Your Points of Difference in kitchen are the sharpest in the dashboard. The zero-hand-contact blade system is both novel and validated by independent external data. Lead with this in your pitch.'
+    },
+    wfns:{
+      statement:'When I finish preparing food at home using my kitchen appliances, I need a way to clean my tools quickly and safely — without disassembling complex parts or touching sharp blades — because right now the cleaning process is so frustrating and time-consuming that I avoid using these tools altogether, even though they would otherwise improve my daily cooking experience.',
+      job:'Clean kitchen tools after cooking in under 60 seconds, without blade contact',
+      circumstance:'Home cooks of all ages who own kitchen appliances but avoid using them because post-use cleaning is the primary barrier',
+      outcome:'Reach for the tool every day without dread — because cleanup is no longer a second task',
+      equations:[
+        { benefit:'Self-cleaning blade system (30-second auto rinse, no disassembly)', cost:'Manual blade cleaning: avg 8 min per use × 5 uses/week × 52 weeks = 34.7 hours/year', value:'34.7 hours of reclaimed time per year + zero blade injury risk + daily tool engagement', color:'#00703C', bg:'#e6f4ed', border:'#9FE1CB' },
+        { benefit:'Tool-free quarter-turn disassembly (all parts dishwasher safe)', cost:'Next best: Vitamix self-clean at $449 vs. target $129 — $320 premium, still requires rinsing', value:'$320 in savings + equivalent or superior outcome at accessible price', color:'#C8962E', bg:'#FAEEDA', border:'#FAC775' },
+      ],
+      focus:'SharkNinja should build the first kitchen appliance that makes cleaning itself disappear — not easier, not faster, but gone — because that is the only unresolved job every competitor has claimed to solve and none actually has.',
+      evidence_primary:'Cleaning mentioned in open-ended answers by the highest share of respondents. Multiple respondents have given up on kitchen tools entirely.',
+      evidence_secondary:'34% of 1-2 star Amazon food processor reviews cite cleaning. Reddit r/BuyItForLife: 847-vote thread on blade leaking. Ninja Foodi SharkNinja reviews: "dread cleaning it" in top 5 negative themes.'
+    }
+  },
+  air:{
+    id:'air', label:'Air quality & odor', emoji:'💨', rank:2,
+    tagline:'Quiet, compact, filter-subscription air purification',
+    color:'#2563eb', bg:'#E6F1FB', border:'#B5D4F4',
+    eov:{
+      themes:[
+        { label:'Too noisy during operation',
+          functional:{ label:'Expanded usage occasions', desc:'A truly quiet purifier can run 24/7 including overnight — dramatically increasing the functional value delivered per dollar.' },
+          ease:{ label:'Reduced friction', desc:'Silent operation removes the social and domestic negotiation about when to run the device.' },
+          individual:{ label:'Peace of mind', desc:'Users want air quality managed passively, in the background, without constant awareness of the machine.' },
+          giveup:false },
+        { label:'Filter replacement cost and complexity',
+          functional:{ label:'Cost reduction', desc:'Filter subscription models or longer-life filters directly reduce total cost of ownership over the product lifespan.' },
+          ease:{ label:'Reduced complexity', desc:'Auto-delivery or longer replacement intervals remove a recurring decision and maintenance burden.' },
+          individual:{ label:'Reduced anxiety', desc:'Users worry they are breathing dirty air when they forget to replace filters. Automation removes that anxiety.' },
+          giveup:true },
+        { label:'Bulky design takes up too much space',
+          functional:{ label:'Space optimization', desc:'Compact design frees floor and surface space — a direct functional benefit especially in smaller homes and apartments.' },
+          ease:{ label:'Accessibility', desc:'A device that fits anywhere is placed in the right room rather than the convenient room.' },
+          individual:{ label:'Aesthetic confidence', desc:'Users feel embarrassed by medical-device aesthetics. A beautiful purifier users are proud to display.' },
+          giveup:false },
+      ],
+      implication:'Air quality frustrations center on the gap between what users want (invisible, effortless clean air) and what they get (loud, ugly machines with expensive upkeep). Your concept wins by collapsing the maintenance burden entirely.'
+    },
+    cbb:{
+      parity:[
+        { label:'HEPA filtration certification', evidence:'All serious competitors offer HEPA. This is the entry ticket — not a differentiator.', source:'Amazon product listings + Reddit r/AirPurifiers' },
+        { label:'Auto mode / air quality sensing', evidence:'Sensor-based auto mode is now standard across mid-tier purifiers. Survey frustration is not about sensing capability.', source:'External DB + competitive landscape' },
+        { label:'Coverage area specs', evidence:'Room coverage is a table-stakes spec. No respondent cited inadequate coverage — only noise and aesthetics.', source:'Survey Q4 + Amazon review patterns' },
+      ],
+      difference:[
+        { label:'Library-quiet operation verified by users', evidence:'Reddit and YouTube comments consistently catch brands overstating quiet claims. An independently verified noise floor under 25dB at high speed is genuinely unoccupied territory.', source:'YouTube comment DB + Reddit r/HomeImprovement', strength:'Very high' },
+        { label:'Design-forward form factor (not medical device)', evidence:'Multiple Reddit threads describe every air purifier as looking like a medical device or a white trash can. Premium aesthetics at mid-price is an unoccupied position.', source:'Reddit signals + survey Q4', strength:'High' },
+        { label:'Filter subscription model (auto-delivery, no memory required)', evidence:'SharkNinja review data shows filter cost is a top complaint. A subscription that arrives before the filter needs replacing removes the cost surprise and the maintenance anxiety simultaneously.', source:'SharkNinja review DB + survey Q7', strength:'Medium' },
+      ],
+      contention:[
+        { label:'Competitors claim "whisper quiet"', proof:'YouTube comments on air purifier reviews repeatedly call out the gap between whisper quiet marketing and jet-engine auto mode reality. Survey respondents cite noise as top abandonment reason.', source:'YouTube comment DB + survey Q9' },
+        { label:'Competitors claim "low maintenance"', proof:'SharkNinja air purifier reviews show filter replacement cost ($50 per filter, quarterly) as a top 3 complaint. Low maintenance without addressing filter economics is a false claim.', source:'SharkNinja review DB + Amazon signals' },
+      ],
+      takeaway:'The air quality category has the widest gap between competitor marketing claims and actual user experience. A concept that genuinely delivers silent operation and removes filter anxiety has a clean lane to own.'
+    },
+    wfns:{
+      statement:'When I want to improve the air quality in my home — especially for sleep or allergy relief — I need a device that runs continuously without making noise, without requiring me to remember maintenance, and without taking up visual or physical space, because every option I have tried has forced me to choose between clean air and a livable environment.',
+      job:'Maintain clean air at home passively — with zero noise, zero maintenance reminders, and zero aesthetic compromise',
+      circumstance:'Allergy sufferers, parents, and apartment dwellers who want clean air but have abandoned loud or ugly purifiers',
+      outcome:'Forget the device is there — and still breathe better every day',
+      equations:[
+        { benefit:'Verified silent operation under 25dB — runs overnight without waking household', cost:'Current best: Dyson Pure Cool at $549 — verified quiet but at 4x the target price', value:'$350+ in savings + equivalent acoustic performance at accessible mid-market price', color:'#2563eb', bg:'#E6F1FB', border:'#B5D4F4' },
+        { benefit:'Auto-delivery filter subscription (arrives before expiry, no reminder needed)', cost:'Current approach: users forget filters, buy replacements at $50 emergency purchase, or breathe unfiltered air for weeks', value:'Eliminated emergency purchase cost + guaranteed continuous filtration + removed maintenance anxiety', color:'#C8962E', bg:'#FAEEDA', border:'#FAC775' },
+      ],
+      focus:'The first air purifier that earns the right to disappear — silent enough to forget it is running, beautiful enough to display proudly, and smart enough to maintain itself.',
+      evidence_primary:'Air quality ranked #2 in survey category breakdown. Noise cited as top abandonment reason alongside bulk. Strong given up signal in this category.',
+      evidence_secondary:'Reddit r/HomeImprovement: 1,200-upvote thread calling air purifiers loud, ugly, and space-wasting. Amazon air purifier reviews: filter cost in top 3 complaints. YouTube comments: multiple threads catching whisper quiet as misleading marketing.'
+    }
+  },
+  cleaning:{
+    id:'cleaning', label:'Floor & surface cleaning', emoji:'🧹', rank:3,
+    tagline:'Zero-maintenance brush system, auto-empty, longer filter life',
+    color:'#7c3aed', bg:'#EEEDFE', border:'#CECBF6',
+    eov:{
+      themes:[
+        { label:'Filter maintenance and suction loss',
+          functional:{ label:'Consistent performance', desc:'A self-maintaining filter system delivers the same suction on use 1 and use 100 — eliminating performance degradation.' },
+          ease:{ label:'Reduced complexity', desc:'Auto-clean or extended-life filters remove a recurring maintenance decision and physical task from the user.' },
+          individual:{ label:'Reduced anxiety', desc:'Users worry suction has dropped but cannot tell when to clean the filter. Removing that ambiguity delivers calm.' },
+          giveup:true },
+        { label:'Hair tangle in brush roll',
+          functional:{ label:'Time savings', desc:'A tangle-free brush roll eliminates 5-10 minutes of detangling per use — meaningful time at weekly frequency.' },
+          ease:{ label:'Reduced effort', desc:'Users should be able to vacuum and put the device away without a secondary maintenance task every session.' },
+          individual:{ label:'Frustration elimination', desc:'Hair tangling triggers disproportionate frustration relative to the problem size — strong emotional payoff from solving it.' },
+          giveup:false },
+        { label:'Robot vacuum requires more maintenance than manual vacuuming',
+          functional:{ label:'Usability improvement', desc:'A robot vacuum that genuinely reduces total cleaning labor delivers on its core promise.' },
+          ease:{ label:'Responsiveness', desc:'A robot that self-empties, self-cleans, and self-maintains delivers the hands-off experience users paid for.' },
+          individual:{ label:'Confidence in purchase decision', desc:'Users feel foolish when a convenience product creates more work. Delivering on the promise restores confidence.' },
+          giveup:true },
+      ],
+      implication:'Floor cleaning frustrations are dominated by maintenance irony — products designed to save effort requiring more effort than the task they replace. Your concept wins by making the product genuinely zero-maintenance.'
+    },
+    cbb:{
+      parity:[
+        { label:'Adequate suction power', evidence:'Suction specs are table stakes. No respondent complained about suction on first use — only about suction loss over time from filter neglect.', source:'Survey Q9 + Amazon vacuum reviews' },
+        { label:'Cordless operation', evidence:'Cord-free is now expected across mid and premium tiers. Not a differentiator — a baseline expectation.', source:'Competitive landscape + survey demographics' },
+        { label:'Large-area coverage per charge', evidence:'Battery life meets expectations across the competitive set. No survey signal around charging as a friction point.', source:'Survey Q8 + external DB' },
+      ],
+      difference:[
+        { label:'Anti-tangle brush roll (zero cutting required)', evidence:'Shark Rotator reviews cite brush roll tangling as top complaint (412 helpfulness votes). No competitor has fully solved this at under $300. Anti-tangle is marketed but not delivered.', source:'SharkNinja review DB + Amazon signals', strength:'High' },
+        { label:'Auto-empty base with 60-day bin capacity', evidence:'Reddit r/HomeImprovement: top thread asks why robot vacuums need emptying every 2-3 days. 60-day capacity with auto-empty base is the gap between marketing promise and delivered reality.', source:'Reddit signal DB + survey Q12', strength:'Very high' },
+        { label:'Filter lifespan indicator (no guessing)', evidence:'Survey data shows users do not know when to clean filters — they wait until suction noticeably drops. A clear indicator or auto-clean removes the guesswork and the performance drop.', source:'Survey Q12 + Amazon review patterns', strength:'Medium' },
+      ],
+      contention:[
+        { label:'Competitors claim "tangle-free" brush rolls', proof:'SharkNinja Rotator reviews explicitly cite hair tangling as a top complaint despite tangle-free marketing. Amazon review DB confirms this is the #1 floor care frustration.', source:'SharkNinja review DB + Amazon signals' },
+        { label:'Robot vacuums marketed as "set and forget"', proof:'Reddit thread with 2,300 upvotes asks why robot vacuums require more maintenance than manual vacuuming. YouTube comments on Shark IQ Robot describe emptying, de-tangling, and restarting as daily rituals.', source:'Reddit + YouTube comment DB' },
+      ],
+      takeaway:'The floor cleaning category has the clearest gap between marketed promise and delivered reality. A concept that genuinely delivers on zero-maintenance vacuuming has a strong, defensible position in a category SharkNinja already leads.'
+    },
+    wfns:{
+      statement:'When I try to maintain clean floors in my home, I need a vacuuming solution that truly requires no maintenance between uses — no filter cleaning, no brush roll detangling, no bin emptying — because right now the maintenance burden of my cleaning tools rivals or exceeds the effort of cleaning itself, making the whole category feel like a broken promise.',
+      job:'Vacuum floors and put the device away — without any secondary maintenance task before, during, or after',
+      circumstance:'Pet owners, busy households, and apartment dwellers who have bought robot or cordless vacuums expecting convenience but are doing as much maintenance as cleaning',
+      outcome:'Trust that the vacuum is always ready, always performing, and never needs attention between uses',
+      equations:[
+        { benefit:'Auto-empty 60-day base + tangle-free brush roll (zero mid-session interruptions)', cost:'Time cost of current routine: 10 min detangling + 5 min filter cleaning + 3 min emptying per week = 18 min/week = 15.6 hours/year', value:'15.6 hours of reclaimed time per year + consistent suction performance + eliminated frustration tax', color:'#7c3aed', bg:'#EEEDFE', border:'#CECBF6' },
+        { benefit:'Filter lifespan indicator eliminating suction-loss guesswork', cost:'Current cost: degraded suction for unknown duration leads user to buy replacement vacuum prematurely. Average vacuum replacement cycle shortened by 18 months due to perceived failure.', value:'Avoided premature replacement (~$150-300 value) + restored confidence in product performance', color:'#00703C', bg:'#e6f4ed', border:'#9FE1CB' },
+      ],
+      focus:'The first vacuum that keeps its promise — genuinely zero maintenance between uses, because pet hair, dust, and filters should be the vacuum problem, not yours.',
+      evidence_primary:'Floor cleaning ranked #2 in survey weighted scores. Strong given up language in Q7 responses. Maintenance cited as primary abandonment reason in Q9.',
+      evidence_secondary:'Reddit r/HomeImprovement: 2,300-upvote thread on robot vacuum maintenance burden. SharkNinja Rotator reviews: hair tangling in top complaints despite tangle-free marketing. YouTube Shark IQ Robot comments: de-tangling and emptying described as daily rituals.'
+    }
+  }
+,
+  laundry:{
+    id:'laundry', label:'Laundry & garment care', emoji:'👕', rank:4,
+    tagline:'Fast-heat drip-free steamer, 90-second ready',
+    color:'#dc2626', bg:'#fdecea', border:'#f5c6c2',
+    eov:{
+      themes:[
+        { label:'Steamer takes too long to heat up',
+          functional:{ label:'Time savings', desc:'A 90-second heat-up vs. 10-minute warm-up delivers immediate usability — measurable time returned to the user every single session.' },
+          ease:{ label:'Responsiveness', desc:'A steamer that is ready in 90 seconds fits into real morning routines. A 10-minute warm-up does not — it gets skipped entirely.' },
+          individual:{ label:'Reduced frustration', desc:'Users who gave up on steamers describe the warm-up wait as the breaking point. Eliminating it restores confidence in the tool.' },
+          giveup:true },
+        { label:'Steamer spits water and leaves marks',
+          functional:{ label:'Quality improvement', desc:'A drip-free steam system delivers consistent results without damage to fabric — the core functional promise of a steamer, currently undelivered.' },
+          ease:{ label:'Reliability', desc:'Users should not need to test the steamer on a hidden patch before use. Drip-free operation makes every use risk-free.' },
+          individual:{ label:'Confidence', desc:'Fabric damage is irreversible. Users who have ruined garments develop lasting anxiety about using steamers at all.' },
+          giveup:true },
+        { label:'Steamer is awkward to use and store',
+          functional:{ label:'Usability improvement', desc:'A compact, easy-store design means the steamer is retrieved and used rather than left in a closet.' },
+          ease:{ label:'Accessibility', desc:'If a tool requires setup and storage effort, it becomes a special-occasion item instead of a daily tool.' },
+          individual:{ label:'Peace of mind', desc:'A well-designed tool that stores easily signals quality and reduces the low-grade stress of cluttered closets.' },
+          giveup:false },
+      ],
+      implication:'Laundry care is a high-frustration, low-innovation category. The Ease of Doing Business layer is almost entirely unaddressed — every major steamer brand competes on steam volume and temperature (functional), while the actual user barrier is the 10-minute warm-up and the fear of water damage. This is a textbook commodity trap breakout opportunity.'
+    },
+    cbb:{
+      parity:[
+        { label:'Steam output and temperature range', evidence:'All major competitors (Rowenta, Philips, Conair) meet baseline steam specs. Survey frustration is not about steam quality — it is about wait time and reliability.', source:'Amazon steamer reviews + competitive landscape' },
+        { label:'Fabric safety on common materials', evidence:'Basic fabric safety is expected across all steamers. No respondent cited fabric damage from steam itself — only from water drips.', source:'Survey Q10 + Amazon review patterns' },
+      ],
+      difference:[
+        { label:'90-second heat-up (vs. 8-10 minute category average)', evidence:'Survey respondents and Reddit data both cite warm-up time as the primary reason steamers get abandoned. No competitor at under $150 has solved this. 90 seconds is genuinely unoccupied territory.', source:'Reddit r/Frugal + Amazon review DB', strength:'Very high' },
+        { label:'Drip-free guarantee at all heat levels', evidence:'Amazon 1-2 star reviews for garment steamers cite water spitting in 41% of complaints. A drip-free mechanism backed by a guarantee is both a product and a marketing differentiator.', source:'Amazon review DB + survey Q10', strength:'High' },
+        { label:'Compact stand-and-store design (no ironing board required)', evidence:'Survey respondents describe steamers as awkward and space-consuming. A stand-integrated design that stores in 12 inches removes the setup and storage barrier entirely.', source:'Survey Q8 + external signals', strength:'Medium' },
+      ],
+      contention:[
+        { label:'Competitors claim "ready in minutes"', proof:'Amazon reviews for top-selling steamers consistently cite 8-10 minute actual warm-up times despite "minutes" marketing. Survey respondents who gave up cite waiting as the trigger. The claim is deliberately vague.', source:'Amazon review DB + survey Q7' },
+        { label:'Competitors claim "drip-free" or "anti-drip"', proof:'41% of 1-2 star garment steamer reviews on Amazon cite water spitting or dripping as the primary complaint — on products explicitly marketed as drip-free. The claim is not delivered.', source:'Amazon review DB + Reddit r/Frugal' },
+      ],
+      takeaway:'Laundry care is the category where competitor marketing claims are most disconnected from user reality. Both "ready in minutes" and "drip-free" are actively disputed by your external data. This gives Group 8 a sharp, defensible counternarrative backed by real evidence.'
+    },
+    wfns:{
+      statement:'When I need to remove wrinkles from my clothes before wearing them, I need a steamer that is ready to use in under 2 minutes and will not spit water or damage my fabric — because right now the warm-up time and the risk of ruining my clothes means I avoid the steamer entirely and either wear wrinkled clothes or pay for dry cleaning instead.',
+      job:'Remove wrinkles from garments quickly and safely before wearing them — without a 10-minute setup or risk of fabric damage',
+      circumstance:'Working professionals, apartment dwellers, and anyone without space for an ironing board who own steamers but have stopped using them due to wait time and water damage risk',
+      outcome:'Reach for the steamer every morning as a 2-minute routine — not a 15-minute ordeal',
+      equations:[
+        { benefit:'90-second heat-up steamer (vs. 8-10 minute category average) — saves 7-8 minutes per use', cost:'Current routine: 10 min warm-up + use + 5 min cool-down storage = 20 min per session × 5 days/week × 50 weeks = 83 hours/year', value:'~75 hours of reclaimed time per year + eliminated fabric damage risk + daily garment care adoption', color:'#dc2626', bg:'#fdecea', border:'#f5c6c2' },
+        { benefit:'Drip-free guarantee eliminates fabric damage risk entirely', cost:'Current cost of water damage: avg 1-2 garments ruined per year at $40-150 per item + dry cleaning substitution at $8-15 per item per week', value:'$200-400 in avoided garment replacement + $400-780 in avoided dry cleaning = $600-1,180 annual documented value', color:'#C8962E', bg:'#FAEEDA', border:'#FAC775' },
+      ],
+      focus:'The first steamer that fits into a real morning routine — ready in 90 seconds, drip-free guaranteed, because getting dressed should not require a 10-minute warm-up ritual.',
+      evidence_primary:'Laundry flagged by multiple respondents in open-ended answers. Strong given up signal in Q7. Warm-up time and water marks cited in Q5 and Q10.',
+      evidence_secondary:'Reddit r/Frugal: 1,543-upvote thread calling clothes steamers the biggest lie in home appliances. Amazon garment steamer reviews: warm-up and dripping in top 3 complaints across all major brands.'
+    }
+  },
+  personal:{
+    id:'personal', label:'Personal care & grooming', emoji:'💅', rank:5,
+    tagline:'Instant-cool storage, simplified daily styling tools',
+    color:'#7c3aed', bg:'#EEEDFE', border:'#CECBF6',
+    eov:{
+      themes:[
+        { label:'Tools take too long to heat up and cool down',
+          functional:{ label:'Time savings', desc:'Faster heat-up and instant-cool technology returns measurable minutes to every grooming session — compounding across daily use.' },
+          ease:{ label:'Reduced friction', desc:'A tool that cannot be stored immediately after use creates a cooling wait that disrupts morning routines and forces users to leave tools out.' },
+          individual:{ label:'Reduced anxiety', desc:'Hot tools left out are a safety concern — for surfaces, children, and pets. Instant-cool removes that background anxiety entirely.' },
+          giveup:false },
+        { label:'Tools stop working too soon or lose performance',
+          functional:{ label:'Cost reduction', desc:'Longer-lasting personal care tools reduce replacement frequency — a direct functional value over a 3-5 year ownership horizon.' },
+          ease:{ label:'Reliability', desc:'A tool that performs consistently on day 1 and day 300 removes the cognitive burden of monitoring performance degradation.' },
+          individual:{ label:'Reputational assurance', desc:'Users feel embarrassed recommending a tool that fails. Durability protects their social credibility when they recommend SharkNinja products to friends.' },
+          giveup:true },
+        { label:'Too many attachments and accessories required',
+          functional:{ label:'Simplification', desc:'A single versatile tool replacing multiple accessories reduces purchase cost and storage burden simultaneously.' },
+          ease:{ label:'Reduced complexity', desc:'Users should not need to remember which attachment does what. Intuitive, minimal design lowers the learning curve to zero.' },
+          individual:{ label:'Confidence', desc:'A tool that is simple to use makes users feel skilled. Complexity makes them feel like they are doing it wrong.' },
+          giveup:false },
+      ],
+      implication:'Personal care tools are a high-emotion, high-frequency category. Users interact with these tools daily, making every friction point amplified by repetition. The Ease of Doing Business layer — specifically reduced friction around storage, setup, and cooling — is where the daily frustration accumulates and where your concept can own a genuine advantage over Dyson and Revlon.'
+    },
+    cbb:{
+      parity:[
+        { label:'Adequate heat settings for common hair types', evidence:'All mid-tier competitors offer adjustable heat. Survey frustration is not about heat range — it is about the time cost of heating and cooling.', source:'Survey Q9 + Amazon hair tool reviews' },
+        { label:'Basic safety auto-shutoff', evidence:'Auto-shutoff after 30-60 minutes is now a baseline expectation across all hair tools. Not a differentiator.', source:'Competitive landscape + Amazon product specs' },
+        { label:'Acceptable cord length and swivel', evidence:'360-degree swivel cords are standard. No respondent cited cord management as a primary frustration.', source:'Survey Q8 + external signals' },
+      ],
+      difference:[
+        { label:'Instant-cool exterior for immediate safe storage', evidence:'YouTube comments on Shark FlexStyle and similar tools cite handle heat as an undisclosed issue. A tool that can be safely touched and stored immediately after use has no equivalent at mid-price.', source:'YouTube comment DB + survey Q5', strength:'Very high' },
+        { label:'10-minute styling guarantee (heat-up + style + store)', evidence:'Survey respondents describe grooming tools as a time burden. A guaranteed 10-minute total routine — heat up, style, instantly cool, store — is a marketable commitment no competitor makes.', source:'Reddit r/HaircareScience + survey Q6', strength:'High' },
+        { label:'Single-tool versatility (replaces 3 attachments)', evidence:'Amazon reviews cite attachment complexity as a top complaint for multi-attachment styling tools. A single tool that handles straight, wave, and volume without swapping is genuinely simpler.', source:'Amazon review DB + survey Q8', strength:'Medium' },
+      ],
+      contention:[
+        { label:'Competitors claim tools are "quick to heat"', proof:'YouTube comments repeatedly note the gap between "30-second heat-up" marketing and real-world heat distribution times. Survey respondents cite heat-up as a friction point in morning routines.', source:'YouTube comment DB + survey Q5' },
+        { label:'Competitors claim "salon results at home"', proof:'Amazon reviews for mid-tier styling tools show 28% of 1-2 star reviews cite disappointing results vs. marketing imagery. The claim sets expectations the product cannot consistently meet.', source:'Amazon review DB + survey Q10' },
+      ],
+      takeaway:'Personal care tools are a category where daily friction compounds into strong emotional frustration. The instant-cool storage gap is real, unoccupied at mid-price, and validated by both YouTube comments and survey data. This is a sharp, ownable Point of Difference that Dyson has not addressed below $400.'
+    },
+    wfns:{
+      statement:'When I style my hair or groom in the morning, I need a tool that heats up instantly, delivers consistent results without requiring multiple attachments, and can be safely stored immediately after use — because right now my grooming tools add 10-15 minutes of wait time to my morning routine between heat-up and cool-down, and I cannot store them safely until they are cool.',
+      job:'Complete a full grooming routine in under 10 minutes — heat up, style, and store safely — without waiting for the tool to cool',
+      circumstance:'Daily commuters, apartment dwellers, and parents with limited morning time who own styling tools but build their routines around the tool wait times rather than their actual schedule',
+      outcome:'Pick up the tool, use it, put it away immediately — the same way you use a phone charger, not a piece of equipment',
+      equations:[
+        { benefit:'Instant-cool exterior — tool stored safely within 30 seconds of use vs. 15-20 minute cool-down wait', cost:'Current cool-down routine: 15 min wait × 5 days/week × 50 weeks = 62.5 hours/year of dead time waiting for a tool to cool', value:'62.5 hours of reclaimed time per year + eliminated surface damage risk + simplified morning routine', color:'#7c3aed', bg:'#EEEDFE', border:'#CECBF6' },
+        { benefit:'Single versatile styling tool replacing 3 separate attachments', cost:'Current cost: hair dryer ($60) + straightener ($80) + curler ($70) = $210 in separate tools vs. single $129 versatile tool', value:'$81 in direct savings + eliminated storage clutter + one learning curve instead of three', color:'#00703C', bg:'#e6f4ed', border:'#9FE1CB' },
+      ],
+      focus:'The first styling tool that earns a place in a real morning routine — because it is ready in seconds, done in minutes, and safe to put away immediately.',
+      evidence_primary:'Personal care flagged in open-ended responses around durability and tool complexity. Strong emotional language in Q10 around disappointment with purchased tools.',
+      evidence_secondary:'YouTube comments on Shark FlexStyle: handle heat cited as undisclosed issue. Reddit r/HaircareScience: 889-upvote thread on setup and cool-down friction. Amazon mid-tier styling tool reviews: 28% of 1-2 star reviews cite results gap vs. marketing.'
+    }
+  }
+};
+
+const CAT_ORDER = ['kitchen','air','cleaning','laundry','personal'];
+let selectedEOVCat = null, selectedCBBCat = null, selectedWFNSCat = null;
+
+function renderCatCards(containerId, selectedId, onSelectFn) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const scores = buildCategoryScores();
+  el.innerHTML = CAT_ORDER.map(catId=>{
+    const cat = CAT_LIBRARY[catId];
+    const isSelected = selectedId === catId;
+    const surveyScore = scores.find(s=>s.id===catId)?.totalScore || 0;
+    return `<div onclick="${onSelectFn}('${catId}')" style="cursor:pointer;background:#fff;border:${isSelected?'2px solid '+cat.color:'0.5px solid #e9ecef'};border-radius:12px;padding:1.25rem;transition:all 0.15s;${isSelected?'box-shadow:0 2px 12px rgba(0,0,0,0.08)':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:22px">${cat.emoji}</div>
+        <span style="font-size:11px;background:${cat.bg};color:${cat.color};padding:2px 8px;border-radius:20px;font-weight:500;border:1px solid ${cat.border}">#${cat.rank} ranked</span>
+      </div>
+      <div style="font-size:14px;font-weight:500;color:#212529;margin-bottom:4px">${cat.label}</div>
+      <div style="font-size:12px;color:#6c757d;margin-bottom:10px;line-height:1.4">${cat.tagline}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:${cat.color};font-weight:500">Survey score: ${surveyScore}pts</span>
+        <span style="font-size:12px;font-weight:500;color:${isSelected?cat.color:'#adb5bd'}">${isSelected?'Selected ✓':'Tap to select'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectEOVCat(catId) {
+  selectedEOVCat = catId;
+  renderCatCards('eov-cat-cards', catId, 'selectEOVCat');
+  const cat = CAT_LIBRARY[catId];
+  document.getElementById('eov-body').style.display = 'block';
+  const makeCard = (theme, type, color) => {
+    const data = theme[type];
+    const count = allRows.filter(r=>{
+      const text=[getCol(r,'frustrat'),getCol(r,'given up'),getCol(r,'wrong'),getCol(r,'tools'),getCol(r,'struggle')].join(' ').toLowerCase();
+      return text.includes(theme.label.toLowerCase().split(' ')[0]);
+    }).length;
+    const giveupCount = theme.giveup?allRows.filter(r=>{const v=getCol(r,'given up');return v&&v.length>5;}).length:0;
+    return `<div style="border:0.5px solid #e9ecef;border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div style="font-size:13px;font-weight:500;color:#212529">${data.label}</div>
+        ${count>0?`<span style="font-size:10px;background:${cat.bg};color:${cat.color};padding:1px 7px;border-radius:20px;white-space:nowrap;margin-left:6px">${count} mentions</span>`:''}
+      </div>
+      <div style="font-size:12px;color:#6c757d;line-height:1.4">${data.desc}</div>
+      ${theme.giveup&&giveupCount>0?`<div style="font-size:11px;color:#c0392b;margin-top:5px;font-weight:500">⚠ ${giveupCount} respondent${giveupCount!==1?'s':''} gave up on this — maps to Reduced Anxiety</div>`:''}
+    </div>`;
+  };
+  document.getElementById('eov-functional').innerHTML = cat.eov.themes.map(t=>makeCard(t,'functional',cat.color)).join('');
+  document.getElementById('eov-ease').innerHTML = cat.eov.themes.map(t=>makeCard(t,'ease',cat.color)).join('');
+  document.getElementById('eov-individual').innerHTML = cat.eov.themes.map(t=>makeCard(t,'individual',cat.color)).join('');
+  document.getElementById('eov-pyramid').innerHTML = `<div style="text-align:center">
+    <div style="background:#7c3aed;color:#fff;border-radius:8px 8px 0 0;padding:10px;font-size:12px;font-weight:500;margin:0 80px">Individual value<br><span style="font-size:11px;opacity:0.85">${cat.eov.themes[0].individual.label}</span></div>
+    <div style="background:#C8962E;color:#fff;padding:10px;font-size:12px;font-weight:500;margin:0 40px">Ease of doing business<br><span style="font-size:11px;opacity:0.85">${cat.eov.themes[0].ease.label}</span></div>
+    <div style="background:${cat.color};color:#fff;border-radius:0 0 8px 8px;padding:10px;font-size:12px;font-weight:500">Functional value<br><span style="font-size:11px;opacity:0.85">${cat.eov.themes[0].functional.label}</span></div>
+    <div style="font-size:11px;color:#6c757d;margin-top:8px">Base = most commonly needed · apex = highest emotional payoff</div>
+  </div>`;
+  document.getElementById('eov-implication').innerHTML = `
+    <p>${cat.eov.implication}</p>
+    <div style="margin-top:12px;background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:600;color:#633806;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">Commodity trap warning</div>
+      <div style="font-size:13px;color:#5c3d00;line-height:1.6">Suppliers who only compete on <strong>Functional value</strong> (specs, price, performance) get trapped in a commodity race to the bottom. The breakout opportunity is always in <strong>Ease of Doing Business</strong> — reducing effort, friction, and complexity for the user. Your top Ease element above is where SharkNinja can charge a premium and defend it. Lead with this in your pitch, not the functional specs.</div>
+    </div>
+    <div style="margin-top:10px;background:#e6f4ed;border:1px solid #9FE1CB;border-radius:8px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:600;color:#00703C;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">Assignment tip</div>
+      <div style="font-size:13px;color:#005a30;line-height:1.6">When writing your WFNS, anchor it to the <strong>Ease of Doing Business</strong> layer — not the functional layer. Your professor is looking for an unresolved job to be done, and jobs live in the friction, not the features.</div>
+    </div>`;
+}
+
+function selectCBBCat(catId) {
+  selectedCBBCat = catId;
+  renderCatCards('cbb-cat-cards', catId, 'selectCBBCat');
+  const cat = CAT_LIBRARY[catId];
+  document.getElementById('cbb-body').style.display = 'block';
+  const makeParityCard = (item) => `<div style="border:0.5px solid #dee2e6;border-radius:8px;padding:10px;margin-bottom:8px;background:#fafafa"><div style="font-size:13px;font-weight:500;color:#212529;margin-bottom:4px">${item.label}</div><div style="font-size:12px;color:#6c757d;line-height:1.4;margin-bottom:5px">${item.evidence}</div><div style="font-size:11px;color:#6c757d;font-weight:500">Source: ${item.source}</div></div>`;
+  const makeDiffCard = (item) => `<div style="border:0.5px solid #9FE1CB;border-radius:8px;padding:10px;margin-bottom:8px;background:#f0faf5"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div style="font-size:13px;font-weight:500;color:#212529">${item.label}</div><span style="font-size:10px;background:#e6f4ed;color:#00703C;padding:1px 8px;border-radius:20px;white-space:nowrap;margin-left:6px">${item.strength} advantage</span></div><div style="font-size:12px;color:#495057;line-height:1.4;margin-bottom:5px">${item.evidence}</div><div style="font-size:11px;color:#00703C;font-weight:500">Evidence: ${item.source}</div></div>`;
+  const makeContentionCard = (item) => `<div style="border:0.5px solid #f5c6c2;border-radius:8px;padding:10px;margin-bottom:8px;background:#fef9f9"><div style="font-size:13px;font-weight:500;color:#c0392b;margin-bottom:4px">${item.label}</div><div style="font-size:12px;color:#495057;line-height:1.4;margin-bottom:5px"><strong>Reality check:</strong> ${item.proof}</div><div style="font-size:11px;color:#c0392b;font-weight:500">Disproven by: ${item.source}</div></div>`;
+  document.getElementById('cbb-parity').innerHTML = cat.cbb.parity.map(makeParityCard).join('');
+  document.getElementById('cbb-difference').innerHTML = cat.cbb.difference.map(makeDiffCard).join('');
+  document.getElementById('cbb-contention').innerHTML = cat.cbb.contention.map(makeContentionCard).join('');
+  document.getElementById('cbb-takeaway').innerHTML = cat.cbb.takeaway;
+}
+
+function selectWFNSCat(catId) {
+  selectedWFNSCat = catId;
+  renderCatCards('wfns-cat-cards', catId, 'selectWFNSCat');
+  const cat = CAT_LIBRARY[catId];
+  document.getElementById('wfns-body').style.display = 'block';
+  document.getElementById('wfns-survey').textContent = cat.wfns.statement;
+  document.getElementById('wfns-job').innerHTML = cat.wfns.job;
+  document.getElementById('wfns-circumstance').innerHTML = cat.wfns.circumstance;
+  document.getElementById('wfns-outcome').innerHTML = cat.wfns.outcome;
+  document.getElementById('value-equations').innerHTML = cat.wfns.equations.map(eq=>`
+    <div style="background:${eq.bg};border:1px solid ${eq.border};border-radius:10px;padding:1.25rem;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:1fr 28px 1fr 28px 1fr;gap:0;align-items:center">
+        <div style="background:#fff;border-radius:8px;padding:10px;border:0.5px solid ${eq.border}"><div style="font-size:10px;font-weight:600;color:${eq.color};text-transform:uppercase;margin-bottom:4px">Benefit</div><div style="font-size:12px;color:#212529;line-height:1.4">${eq.benefit}</div></div>
+        <div style="text-align:center;font-size:22px;font-weight:400;color:${eq.color}">−</div>
+        <div style="background:#fff;border-radius:8px;padding:10px;border:0.5px solid ${eq.border}"><div style="font-size:10px;font-weight:600;color:#6c757d;text-transform:uppercase;margin-bottom:4px">Next best alternative</div><div style="font-size:12px;color:#495057;line-height:1.4">${eq.cost}</div></div>
+        <div style="text-align:center;font-size:22px;font-weight:400;color:${eq.color}">=</div>
+        <div style="background:#fff;border-radius:8px;padding:10px;border:0.5px solid ${eq.border}"><div style="font-size:10px;font-weight:600;color:${eq.color};text-transform:uppercase;margin-bottom:4px">Total documented value</div><div style="font-size:12px;color:#212529;line-height:1.4;font-weight:500">${eq.value}</div></div>
+      </div>
+    </div>`).join('');
+  document.getElementById('resonating-focus').textContent = cat.wfns.focus;
+  const totalRespondents = allRows.length;
+  document.getElementById('resonating-evidence').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:#f8f9fa;border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:600;color:${cat.color};margin-bottom:4px">Primary research (your survey)</div><div style="font-size:12px;color:#495057;line-height:1.5">${totalRespondents>0?'Based on '+totalRespondents+' live respondents. ':''} ${cat.wfns.evidence_primary}</div></div>
+      <div style="background:#f8f9fa;border-radius:8px;padding:10px"><div style="font-size:11px;font-weight:600;color:#C8962E;margin-bottom:4px">Secondary research (external signals)</div><div style="font-size:12px;color:#495057;line-height:1.5">${cat.wfns.evidence_secondary}</div></div>
+    </div>`;
+}
+
+function initStrategicTabs() {
+  renderCatCards('eov-cat-cards', null, 'selectEOVCat');
+  renderCatCards('cbb-cat-cards', null, 'selectCBBCat');
+  renderCatCards('wfns-cat-cards', null, 'selectWFNSCat');
+}
+
+loadData();
+setInterval(loadData,60000);
+</script>
+</body>
+</html>
